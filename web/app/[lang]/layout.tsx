@@ -8,10 +8,11 @@ import { getDictionary, type Locale } from "./dictionaries"
 const inter = Inter({ subsets: ["latin"] })
 
 export async function generateMetadata({
-  params: { lang },
+  params,
 }: {
   params: { lang: string }
 }): Promise<Metadata> {
+  const { lang } = await params
   const validLang = (lang === "zh" ? "zh" : "en") as Locale
   const dict = await getDictionary(validLang)
 
@@ -21,13 +22,14 @@ export async function generateMetadata({
   }
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-  params: { lang },
+  params,
 }: {
   children: React.ReactNode
   params: { lang: string }
 }) {
+  const { lang } = await params
   return (
     <html lang={lang} suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>

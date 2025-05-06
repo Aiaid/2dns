@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 
 export default function Hero({ dict }: { dict: any }) {
   return (
@@ -27,12 +28,13 @@ export default function Hero({ dict }: { dict: any }) {
             </div>
           </div>
           <div className="flex items-center justify-center">
-            <img
-              src="/placeholder.svg?height=400&width=600"
+            <Image
+              src="/image.png"
               width={600}
               height={400}
-              alt="Hero"
-              className="rounded-lg object-cover"
+              alt="2DNS Global Network"
+              className="rounded-lg object-contain"
+              priority
             />
           </div>
         </div>

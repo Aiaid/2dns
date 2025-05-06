@@ -7,10 +7,13 @@ export async function generateStaticParams() {
 }
 
 export default async function Home({
-  params: { lang },
+  params,
 }: {
   params: { lang: string }
 }) {
+  // Get the language from params
+  const { lang } = await params
+  
   // Ensure we use a valid language
   const validLang = (lang === "zh" ? "zh" : "en") as Locale
 

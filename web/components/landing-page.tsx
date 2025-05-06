@@ -2,7 +2,6 @@ import Hero from "@/components/hero"
 import Features from "@/components/features"
 import HowItWorks from "@/components/how-it-works"
 import InteractiveDemo from "@/components/interactive-demo"
-import Cta from "@/components/cta"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 
@@ -22,7 +21,6 @@ export default function LandingPage({
         <Features dict={dictionary.features} />
         <HowItWorks dict={dictionary.howItWorks} />
         <InteractiveDemo dict={dictionary.demo} />
-        <Cta dict={dictionary.cta} />
       </main>
       <Footer dict={dictionary.footer} brand={dictionary.common.brand} />
     </div>

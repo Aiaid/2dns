@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "title": "2DNS - DNS反射服务",
-    "description": "一种DNS反射服务，允许没有域名的服务器使用无状态DNS域名申请SSL证书。"
+    "title": "2DNS - DNS反射服务器",
+    "description": "一个多功能的DNS反射服务器，允许您在域名中编码IP地址，并在DNS响应中将其反射回来。"
   },
   "common": {
     "brand": "2DNS",
@@ -16,73 +16,151 @@
     "contact": "联系我们"
   },
   "hero": {
-    "title": "DNS反射服务",
-    "subtitle": "为没有域名的服务器提供安全保障",
-    "description": "2DNS是一种DNS反射服务，允许没有域名的服务器使用无状态DNS域名申请SSL证书。",
-    "cta": "立即开始",
+    "title": "DNS反射服务器",
+    "subtitle": "在域名中编码IP地址，在DNS响应中获取它们",
+    "description": "2DNS是一个多功能的DNS反射服务器，允许您在域名中编码IP地址，并在DNS响应中将其反射回来。适用于各种网络应用、诊断和基于DNS的服务发现。",
+    "cta": "立即尝试",
     "secondaryCta": "了解更多"
   },
   "features": {
     "title": "功能特点",
-    "subtitle": "保障服务器安全所需的一切",
+    "subtitle": "强大的DNS反射功能",
     "list": [
       {
-        "title": "无状态DNS",
-        "description": "无需注册域名。使用我们的无状态DNS服务获取SSL证书。"
+        "title": "IPv4和IPv6支持",
+        "description": "完全支持IPv4和IPv6地址，提供多种编码格式。"
       },
       {
-        "title": "SSL证书",
-        "description": "为没有域名的服务器申请SSL证书。"
+        "title": "多种编码格式",
+        "description": "直接反射、Base32编码，以及IPv6的特殊格式，包括零组压缩。"
       },
       {
-        "title": "简易集成",
-        "description": "简单的API和客户端库，轻松集成到现有基础设施中。"
+        "title": "双栈支持",
+        "description": "在单个域名中同时编码IPv4和IPv6地址，适用于双栈环境。"
       },
       {
-        "title": "高可用性",
-        "description": "我们的服务分布在多个区域，确保高可用性。"
+        "title": "高兼容性",
+        "description": "在多个端口和网络类型上运行，确保在不同环境中的最大兼容性。"
       }
     ]
   },
   "howItWorks": {
     "title": "工作原理",
-    "subtitle": "无需域名即可保护服务器的简单步骤",
+    "subtitle": "简单的DNS反射过程",
     "steps": [
       {
-        "title": "输入服务器IP",
-        "description": "首先在我们的系统中输入您的服务器IP地址。这是您想要使用SSL证书保护的服务器。"
+        "title": "在域名中编码IP",
+        "description": "根据支持的编码格式之一格式化您的IP地址，并将其附加到2dns.dev域名。"
       },
       {
-        "title": "获取DNS名称",
-        "description": "我们的系统生成一个指向您服务器IP地址的唯一DNS名称。这个DNS名称是无状态的，不需要注册。"
+        "title": "发送DNS查询",
+        "description": "使用标准DNS工具（如dig或nslookup）向我们的DNS服务器查询编码的域名。"
       },
       {
-        "title": "申请SSL证书",
-        "description": "使用生成的DNS名称向任何支持DNS验证的证书颁发机构申请SSL证书。"
+        "title": "服务器处理查询",
+        "description": "我们的服务器解析域名，提取编码的IP地址，并准备适当的DNS响应。"
       },
       {
-        "title": "保护您的服务器",
-        "description": "在您的服务器上安装SSL证书，启用HTTPS，保护您的连接并提高信任度。"
+        "title": "在响应中接收IP",
+        "description": "DNS响应包含提取的IP地址，作为A记录（IPv4）或AAAA记录（IPv6）。"
       }
     ]
   },
   "demo": {
-    "title": "实际演示",
-    "subtitle": "尝试我们的交互式演示",
-    "description": "输入您的服务器IP地址，了解2DNS的工作原理。",
-    "ipLabel": "服务器IP地址",
-    "ipPlaceholder": "输入您的服务器IP地址",
-    "generateButton": "生成DNS名称",
-    "resultTitle": "您的DNS名称",
+    "title": "尝试DNS反射",
+    "subtitle": "了解2DNS如何处理您的IP地址",
+    "description": "输入IP地址并选择格式以生成DNS查询命令。",
+    "ipLabel": "IP地址",
+    "ipPlaceholder": "输入IPv4或IPv6地址",
+    "formatLabel": "查询格式",
+    "commandTypeLabel": "命令类型",
+    "commandTypes": [
+      { "id": "dig", "name": "dig" },
+      { "id": "host", "name": "host" }
+    ],
+    "formats": [
+      { "id": "direct-ipv4", "name": "直接IPv4反射" },
+      { "id": "ipv6-complete", "name": "IPv6完整格式" },
+      { "id": "ipv6-omit", "name": "IPv6省略零格式" },
+      { "id": "ipv6-z", "name": "IPv6使用'z'表示零组" },
+      { "id": "base32-ipv4", "name": "Base32编码IPv4" },
+      { "id": "base32-ipv6", "name": "Base32编码IPv6" },
+      { "id": "dual-stack", "name": "双栈(IPv4 + IPv6)" }
+    ],
+    "generateButton": "生成DNS查询",
+    "resultTitle": "DNS查询命令",
+    "responseTitle": "预期响应",
     "copyButton": "复制",
     "copiedMessage": "已复制到剪贴板！",
     "instructions": {
       "title": "使用方法",
       "steps": [
-        "输入您的服务器IP地址",
-        "点击'生成DNS名称'",
-        "使用生成的DNS名称申请SSL证书",
-        "配置您的服务器使用SSL证书"
+        "输入IPv4或IPv6地址",
+        "选择查询格式",
+        "选择命令类型（dig或host）",
+        "点击'生成DNS查询'",
+        "复制并在终端中运行命令"
+      ]
+    },
+    "examples": {
+      "title": "示例",
+      "items": [
+        {
+          "format": "直接IPv4",
+          "commands": {
+            "dig": "dig @2dns.dev 1.2.3.4.2dns.dev A",
+            "host": "host -t A 1.2.3.4.2dns.dev 2dns.dev"
+          },
+          "response": "返回1.2.3.4作为A记录"
+        },
+        {
+          "format": "IPv6完整格式",
+          "commands": {
+            "dig": "dig @2dns.dev 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev AAAA",
+            "host": "host -t AAAA 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev 2dns.dev"
+          },
+          "response": "返回2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
+        },
+        {
+          "format": "IPv6省略零格式",
+          "commands": {
+            "dig": "dig @2dns.dev 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev AAAA",
+            "host": "host -t AAAA 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev 2dns.dev"
+          },
+          "response": "返回2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
+        },
+        {
+          "format": "IPv6使用'z'表示零组",
+          "commands": {
+            "dig": "dig @2dns.dev 2001-db8-85a3-z-8a2e-370-7334.2dns.dev AAAA",
+            "host": "host -t AAAA 2001-db8-85a3-z-8a2e-370-7334.2dns.dev 2dns.dev"
+          },
+          "response": "返回2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
+        },
+        {
+          "format": "Base32编码IPv4",
+          "commands": {
+            "dig": "dig @2dns.dev AEBAGBA8.2dns.dev A",
+            "host": "host -t A AEBAGBA8.2dns.dev 2dns.dev"
+          },
+          "response": "返回1.2.3.4作为A记录"
+        },
+        {
+          "format": "Base32编码IPv6",
+          "commands": {
+            "dig": "dig @2dns.dev ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev AAAA",
+            "host": "host -t AAAA ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev 2dns.dev"
+          },
+          "response": "返回2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
+        },
+        {
+          "format": "双栈(IPv4 + IPv6)",
+          "commands": {
+            "dig": "dig @2dns.dev AEBAGBA8ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev A+AAAA",
+            "host": "host -t A+AAAA AEBAGBA8ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev 2dns.dev"
+          },
+          "response": "返回1.2.3.4作为A记录和2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
+        }
       ]
     }
   },
@@ -91,17 +169,17 @@
     "subtitle": "全球开发者的信任之选",
     "list": [
       {
-        "quote": "2DNS简化了我们内部服务器的SSL证书管理。强烈推荐！",
+        "quote": "2DNS简化了我们的网络诊断和服务发现。一个出色的工具！",
         "author": "张三",
-        "role": "DevOps工程师"
+        "role": "网络工程师"
       },
       {
-        "quote": "我们一直在物联网设备上使用2DNS，运行非常流畅。",
+        "quote": "我们在物联网设备发现中使用2DNS，在IPv4和IPv6网络上运行非常流畅。",
         "author": "李四",
         "role": "物联网开发者"
       },
       {
-        "quote": "无状态的方法非常巧妙。不再需要为内部服务管理DNS记录。",
+        "quote": "多种编码格式非常巧妙。完美适用于我们的混合网络环境。",
         "author": "王五",
         "role": "系统管理员"
       }
@@ -116,7 +194,7 @@
         "price": "¥0",
         "period": "永久",
         "description": "适用于个人项目和小型团队",
-        "features": ["最多5个DNS名称", "基本SSL证书", "社区支持"],
+        "features": ["公共2dns.dev服务", "所有编码格式", "社区支持"],
         "cta": "立即开始"
       },
       {
@@ -124,7 +202,7 @@
         "price": "¥129",
         "period": "每月",
         "description": "适用于成长中的团队和企业",
-        "features": ["最多50个DNS名称", "通配符SSL证书", "优先支持", "自定义DNS名称"],
+        "features": ["私有DNS反射服务器", "自定义域名支持", "优先支持", "高级分析"],
         "cta": "开始免费试用"
       },
       {
@@ -132,16 +210,16 @@
         "price": "定制",
         "period": "",
         "description": "适用于有定制需求的大型组织",
-        "features": ["无限DNS名称", "高级SSL证书", "专属支持", "定制集成", "SLA保障"],
+        "features": ["多个私有实例", "自定义编码格式", "专属支持", "定制集成", "SLA保障"],
         "cta": "联系销售"
       }
     ]
   },
   "cta": {
     "title": "准备好开始了吗？",
-    "description": "加入已经使用2DNS保障服务器安全的数千名开发者。",
-    "primaryButton": "立即开始",
-    "secondaryButton": "联系销售"
+    "description": "加入全球开发者的行列，使用2DNS进行网络应用、诊断和服务发现。",
+    "primaryButton": "立即尝试",
+    "secondaryButton": "联系我们"
   },
   "footer": {
     "rights": "保留所有权利。",

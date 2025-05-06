@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "title": "2DNS - DNS Reflection Service",
-    "description": "A DNS reflection service that allows servers without domain names to use stateless DNS domains to apply for SSL certificates."
+    "title": "2DNS - DNS Reflection Server",
+    "description": "A versatile DNS reflection server that allows you to encode IP addresses in domain names and have them reflected back in DNS responses."
   },
   "common": {
     "brand": "2DNS",
@@ -16,73 +16,151 @@
     "contact": "Contact Us"
   },
   "hero": {
-    "title": "DNS Reflection Service",
-    "subtitle": "Secure your servers without domain names",
-    "description": "2DNS is a DNS reflection service that allows servers without domain names to use stateless DNS domains to apply for SSL certificates.",
-    "cta": "Get Started",
+    "title": "DNS Reflection Server",
+    "subtitle": "Encode IPs in domain names, get them back in DNS responses",
+    "description": "2DNS is a versatile DNS reflection server that allows you to encode IP addresses in domain names and have them reflected back in DNS responses. Perfect for networking applications, diagnostics, and DNS-based service discovery.",
+    "cta": "Try It Now",
     "secondaryCta": "Learn More"
   },
   "features": {
     "title": "Features",
-    "subtitle": "Everything you need to secure your servers",
+    "subtitle": "Powerful DNS reflection capabilities",
     "list": [
       {
-        "title": "Stateless DNS",
-        "description": "No need to register a domain name. Use our stateless DNS service to get SSL certificates."
+        "title": "IPv4 & IPv6 Support",
+        "description": "Full support for both IPv4 and IPv6 addresses with multiple encoding formats."
       },
       {
-        "title": "SSL Certificates",
-        "description": "Apply for SSL certificates for your servers without domain names."
+        "title": "Multiple Encoding Formats",
+        "description": "Direct reflection, Base32 encoding, and special formats for IPv6 including zero-group compression."
       },
       {
-        "title": "Easy Integration",
-        "description": "Simple API and client libraries for easy integration with your existing infrastructure."
+        "title": "Dual-Stack Support",
+        "description": "Encode both IPv4 and IPv6 addresses in a single domain for dual-stack environments."
       },
       {
-        "title": "High Availability",
-        "description": "Our service is distributed across multiple regions for high availability."
+        "title": "High Compatibility",
+        "description": "Runs on multiple ports and network types for maximum compatibility across different environments."
       }
     ]
   },
   "howItWorks": {
     "title": "How It Works",
-    "subtitle": "Simple steps to secure your servers without domain names",
+    "subtitle": "Simple DNS reflection in action",
     "steps": [
       {
-        "title": "Enter Your Server IP",
-        "description": "Start by entering your server's IP address in our system. This is the server you want to secure with an SSL certificate."
+        "title": "Encode IP in Domain",
+        "description": "Format your IP address according to one of the supported encoding formats and append it to the 2dns.dev domain."
       },
       {
-        "title": "Get Your DNS Name",
-        "description": "Our system generates a unique DNS name that points to your server IP address. This DNS name is stateless and doesn't require registration."
+        "title": "Send DNS Query",
+        "description": "Use standard DNS tools like dig or nslookup to query the encoded domain name against our DNS server."
       },
       {
-        "title": "Apply for SSL Certificate",
-        "description": "Use the generated DNS name to apply for an SSL certificate from any certificate authority that supports DNS validation."
+        "title": "Server Processes Query",
+        "description": "Our server parses the domain name, extracts the encoded IP address, and prepares the appropriate DNS response."
       },
       {
-        "title": "Secure Your Server",
-        "description": "Install the SSL certificate on your server to enable HTTPS, securing your connections and improving trust."
+        "title": "Receive IP in Response",
+        "description": "The DNS response contains the extracted IP address as an A record (for IPv4) or AAAA record (for IPv6)."
       }
     ]
   },
   "demo": {
-    "title": "See It In Action",
-    "subtitle": "Try our interactive demo",
-    "description": "Enter your server IP address to see how 2DNS works.",
-    "ipLabel": "Server IP Address",
-    "ipPlaceholder": "Enter your server IP address",
-    "generateButton": "Generate DNS Name",
-    "resultTitle": "Your DNS Name",
+    "title": "Try DNS Reflection",
+    "subtitle": "See how 2DNS works with your IP addresses",
+    "description": "Enter an IP address and select a format to generate a DNS query command.",
+    "ipLabel": "IP Address",
+    "ipPlaceholder": "Enter IPv4 or IPv6 address",
+    "formatLabel": "Query Format",
+    "commandTypeLabel": "Command Type",
+    "commandTypes": [
+      { "id": "dig", "name": "dig" },
+      { "id": "host", "name": "host" }
+    ],
+    "formats": [
+      { "id": "direct-ipv4", "name": "Direct IPv4 Reflection" },
+      { "id": "ipv6-complete", "name": "IPv6 Complete Format" },
+      { "id": "ipv6-omit", "name": "IPv6 with Omitted Zeros" },
+      { "id": "ipv6-z", "name": "IPv6 with 'z' for Zero Groups" },
+      { "id": "base32-ipv4", "name": "Base32 Encoded IPv4" },
+      { "id": "base32-ipv6", "name": "Base32 Encoded IPv6" },
+      { "id": "dual-stack", "name": "Dual-Stack (IPv4 + IPv6)" }
+    ],
+    "generateButton": "Generate DNS Query",
+    "resultTitle": "DNS Query Command",
+    "responseTitle": "Expected Response",
     "copyButton": "Copy",
     "copiedMessage": "Copied to clipboard!",
     "instructions": {
       "title": "How to use",
       "steps": [
-        "Enter your server IP address",
-        "Click 'Generate DNS Name'",
-        "Use the generated DNS name to apply for SSL certificates",
-        "Configure your server to use the SSL certificates"
+        "Enter an IPv4 or IPv6 address",
+        "Select a query format",
+        "Choose command type (dig or host)",
+        "Click 'Generate DNS Query'",
+        "Copy and run the command in your terminal"
+      ]
+    },
+    "examples": {
+      "title": "Examples",
+      "items": [
+        {
+          "format": "Direct IPv4",
+          "commands": {
+            "dig": "dig @2dns.dev 1.2.3.4.2dns.dev A",
+            "host": "host -t A 1.2.3.4.2dns.dev 2dns.dev"
+          },
+          "response": "Returns 1.2.3.4 as an A record"
+        },
+        {
+          "format": "IPv6 Complete",
+          "commands": {
+            "dig": "dig @2dns.dev 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev AAAA",
+            "host": "host -t AAAA 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev 2dns.dev"
+          },
+          "response": "Returns 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
+        },
+        {
+          "format": "IPv6 with Omitted Zeros",
+          "commands": {
+            "dig": "dig @2dns.dev 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev AAAA",
+            "host": "host -t AAAA 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev 2dns.dev"
+          },
+          "response": "Returns 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
+        },
+        {
+          "format": "IPv6 with 'z' for Zero Groups",
+          "commands": {
+            "dig": "dig @2dns.dev 2001-db8-85a3-z-8a2e-370-7334.2dns.dev AAAA",
+            "host": "host -t AAAA 2001-db8-85a3-z-8a2e-370-7334.2dns.dev 2dns.dev"
+          },
+          "response": "Returns 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
+        },
+        {
+          "format": "Base32 Encoded IPv4",
+          "commands": {
+            "dig": "dig @2dns.dev AEBAGBA8.2dns.dev A",
+            "host": "host -t A AEBAGBA8.2dns.dev 2dns.dev"
+          },
+          "response": "Returns 1.2.3.4 as an A record"
+        },
+        {
+          "format": "Base32 Encoded IPv6",
+          "commands": {
+            "dig": "dig @2dns.dev ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev AAAA",
+            "host": "host -t AAAA ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev 2dns.dev"
+          },
+          "response": "Returns 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
+        },
+        {
+          "format": "Dual-Stack (IPv4 + IPv6)",
+          "commands": {
+            "dig": "dig @2dns.dev AEBAGBA8ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev A+AAAA",
+            "host": "host -t A+AAAA AEBAGBA8ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev 2dns.dev"
+          },
+          "response": "Returns 1.2.3.4 as an A record and 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
+        }
       ]
     }
   },
@@ -91,17 +169,17 @@
     "subtitle": "Trusted by developers worldwide",
     "list": [
       {
-        "quote": "2DNS has simplified our SSL certificate management for internal servers. Highly recommended!",
+        "quote": "2DNS has simplified our network diagnostics and service discovery. A brilliant tool!",
         "author": "John Doe",
-        "role": "DevOps Engineer"
+        "role": "Network Engineer"
       },
       {
-        "quote": "We've been using 2DNS for our IoT devices and it works flawlessly.",
+        "quote": "We use 2DNS for our IoT device discovery and it works flawlessly across IPv4 and IPv6 networks.",
         "author": "Jane Smith",
         "role": "IoT Developer"
       },
       {
-        "quote": "The stateless approach is genius. No more managing DNS records for internal services.",
+        "quote": "The multiple encoding formats are genius. Perfect for our mixed network environment.",
         "author": "Mike Johnson",
         "role": "System Administrator"
       }
@@ -116,7 +194,7 @@
         "price": "$0",
         "period": "forever",
         "description": "For personal projects and small teams",
-        "features": ["Up to 5 DNS names", "Basic SSL certificates", "Community support"],
+        "features": ["Public 2dns.dev service", "All encoding formats", "Community support"],
         "cta": "Get Started"
       },
       {
@@ -124,7 +202,7 @@
         "price": "$19",
         "period": "per month",
         "description": "For growing teams and businesses",
-        "features": ["Up to 50 DNS names", "Wildcard SSL certificates", "Priority support", "Custom DNS names"],
+        "features": ["Private DNS reflection server", "Custom domain support", "Priority support", "Advanced analytics"],
         "cta": "Start Free Trial"
       },
       {
@@ -133,8 +211,8 @@
         "period": "",
         "description": "For large organizations with custom needs",
         "features": [
-          "Unlimited DNS names",
-          "Advanced SSL certificates",
+          "Multiple private instances",
+          "Custom encoding formats",
           "Dedicated support",
           "Custom integration",
           "SLA guarantees"
@@ -145,9 +223,9 @@
   },
   "cta": {
     "title": "Ready to Get Started?",
-    "description": "Join thousands of developers who are already using 2DNS to secure their servers.",
-    "primaryButton": "Get Started",
-    "secondaryButton": "Contact Sales"
+    "description": "Join developers worldwide who are using 2DNS for network applications, diagnostics, and service discovery.",
+    "primaryButton": "Try It Now",
+    "secondaryButton": "Contact Us"
   },
   "footer": {
     "rights": "All rights reserved.",
