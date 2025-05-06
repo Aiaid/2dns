@@ -1,0 +1,151 @@
+{
+  "metadata": {
+    "title": "2DNS - DNS反射服务",
+    "description": "一种DNS反射服务，允许没有域名的服务器使用无状态DNS域名申请SSL证书。"
+  },
+  "common": {
+    "brand": "2DNS",
+    "learnMore": "了解更多",
+    "getStarted": "立即开始",
+    "tryItNow": "立即尝试"
+  },
+  "navigation": {
+    "features": "功能特点",
+    "howItWorks": "工作原理",
+    "try": "立即体验",
+    "contact": "联系我们"
+  },
+  "hero": {
+    "title": "DNS反射服务",
+    "subtitle": "为没有域名的服务器提供安全保障",
+    "description": "2DNS是一种DNS反射服务，允许没有域名的服务器使用无状态DNS域名申请SSL证书。",
+    "cta": "立即开始",
+    "secondaryCta": "了解更多"
+  },
+  "features": {
+    "title": "功能特点",
+    "subtitle": "保障服务器安全所需的一切",
+    "list": [
+      {
+        "title": "无状态DNS",
+        "description": "无需注册域名。使用我们的无状态DNS服务获取SSL证书。"
+      },
+      {
+        "title": "SSL证书",
+        "description": "为没有域名的服务器申请SSL证书。"
+      },
+      {
+        "title": "简易集成",
+        "description": "简单的API和客户端库，轻松集成到现有基础设施中。"
+      },
+      {
+        "title": "高可用性",
+        "description": "我们的服务分布在多个区域，确保高可用性。"
+      }
+    ]
+  },
+  "howItWorks": {
+    "title": "工作原理",
+    "subtitle": "无需域名即可保护服务器的简单步骤",
+    "steps": [
+      {
+        "title": "输入服务器IP",
+        "description": "首先在我们的系统中输入您的服务器IP地址。这是您想要使用SSL证书保护的服务器。"
+      },
+      {
+        "title": "获取DNS名称",
+        "description": "我们的系统生成一个指向您服务器IP地址的唯一DNS名称。这个DNS名称是无状态的，不需要注册。"
+      },
+      {
+        "title": "申请SSL证书",
+        "description": "使用生成的DNS名称向任何支持DNS验证的证书颁发机构申请SSL证书。"
+      },
+      {
+        "title": "保护您的服务器",
+        "description": "在您的服务器上安装SSL证书，启用HTTPS，保护您的连接并提高信任度。"
+      }
+    ]
+  },
+  "demo": {
+    "title": "实际演示",
+    "subtitle": "尝试我们的交互式演示",
+    "description": "输入您的服务器IP地址，了解2DNS的工作原理。",
+    "ipLabel": "服务器IP地址",
+    "ipPlaceholder": "输入您的服务器IP地址",
+    "generateButton": "生成DNS名称",
+    "resultTitle": "您的DNS名称",
+    "copyButton": "复制",
+    "copiedMessage": "已复制到剪贴板！",
+    "instructions": {
+      "title": "使用方法",
+      "steps": [
+        "输入您的服务器IP地址",
+        "点击'生成DNS名称'",
+        "使用生成的DNS名称申请SSL证书",
+        "配置您的服务器使用SSL证书"
+      ]
+    }
+  },
+  "testimonials": {
+    "title": "用户评价",
+    "subtitle": "全球开发者的信任之选",
+    "list": [
+      {
+        "quote": "2DNS简化了我们内部服务器的SSL证书管理。强烈推荐！",
+        "author": "张三",
+        "role": "DevOps工程师"
+      },
+      {
+        "quote": "我们一直在物联网设备上使用2DNS，运行非常流畅。",
+        "author": "李四",
+        "role": "物联网开发者"
+      },
+      {
+        "quote": "无状态的方法非常巧妙。不再需要为内部服务管理DNS记录。",
+        "author": "王五",
+        "role": "系统管理员"
+      }
+    ]
+  },
+  "pricing": {
+    "title": "价格方案",
+    "subtitle": "简单透明的价格",
+    "plans": [
+      {
+        "name": "免费版",
+        "price": "¥0",
+        "period": "永久",
+        "description": "适用于个人项目和小型团队",
+        "features": ["最多5个DNS名称", "基本SSL证书", "社区支持"],
+        "cta": "立即开始"
+      },
+      {
+        "name": "专业版",
+        "price": "¥129",
+        "period": "每月",
+        "description": "适用于成长中的团队和企业",
+        "features": ["最多50个DNS名称", "通配符SSL证书", "优先支持", "自定义DNS名称"],
+        "cta": "开始免费试用"
+      },
+      {
+        "name": "企业版",
+        "price": "定制",
+        "period": "",
+        "description": "适用于有定制需求的大型组织",
+        "features": ["无限DNS名称", "高级SSL证书", "专属支持", "定制集成", "SLA保障"],
+        "cta": "联系销售"
+      }
+    ]
+  },
+  "cta": {
+    "title": "准备好开始了吗？",
+    "description": "加入已经使用2DNS保障服务器安全的数千名开发者。",
+    "primaryButton": "立即开始",
+    "secondaryButton": "联系销售"
+  },
+  "footer": {
+    "rights": "保留所有权利。",
+    "privacy": "隐私政策",
+    "terms": "服务条款"
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "metadata": {
+    "title": "2DNS - DNS Reflection Service",
+    "description": "A DNS reflection service that allows servers without domain names to use stateless DNS domains to apply for SSL certificates."
+  },
+  "common": {
+    "brand": "2DNS",
+    "learnMore": "Learn More",
+    "getStarted": "Get Started",
+    "tryItNow": "Try It Now"
+  },
+  "navigation": {
+    "features": "Features",
+    "testimonials": "Testimonials",
+    "pricing": "Pricing",
+    "contact": "Contact Us"
+  },
+  "hero": {
+    "title": "DNS Reflection Service",
+    "subtitle": "Secure your servers without domain names",
+    "description": "2DNS is a DNS reflection service that allows servers without domain names to use stateless DNS domains to apply for SSL certificates.",
+    "cta": "Get Started",
+    "secondaryCta": "Learn More"
+  },
+  "features": {
+    "title": "Features",
+    "subtitle": "Everything you need to secure your servers",
+    "list": [
+      {
+        "title": "Stateless DNS",
+        "description": "No need to register a domain name. Use our stateless DNS service to get SSL certificates."
+      },
+      {
+        "title": "SSL Certificates",
+        "description": "Apply for SSL certificates for your servers without domain names."
+      },
+      {
+        "title": "Easy Integration",
+        "description": "Simple API and client libraries for easy integration with your existing infrastructure."
+      },
+      {
+        "title": "High Availability",
+        "description": "Our service is distributed across multiple regions for high availability."
+      }
+    ]
+  },
+  "demo": {
+    "title": "See It In Action",
+    "subtitle": "Try our interactive demo",
+    "description": "Enter your server IP address to see how 2DNS works.",
+    "ipLabel": "Server IP Address",
+    "ipPlaceholder": "Enter your server IP address",
+    "generateButton": "Generate DNS Name",
+    "resultTitle": "Your DNS Name",
+    "copyButton": "Copy",
+    "copiedMessage": "Copied to clipboard!",
+    "instructions": {
+      "title": "How to use",
+      "steps": [
+        "Enter your server IP address",
+        "Click 'Generate DNS Name'",
+        "Use the generated DNS name to apply for SSL certificates",
+        "Configure your server to use the SSL certificates"
+      ]
+    }
+  },
+  "testimonials": {
+    "title": "What Our Users Say",
+    "subtitle": "Trusted by developers worldwide",
+    "list": [
+      {
+        "quote": "2DNS has simplified our SSL certificate management for internal servers. Highly recommended!",
+        "author": "John Doe",
+        "role": "DevOps Engineer"
+      },
+      {
+        "quote": "We've been using 2DNS for our IoT devices and it works flawlessly.",
+        "author": "Jane Smith",
+        "role": "IoT Developer"
+      },
+      {
+        "quote": "The stateless approach is genius. No more managing DNS records for internal services.",
+        "author": "Mike Johnson",
+        "role": "System Administrator"
+      }
+    ]
+  },
+  "pricing": {
+    "title": "Pricing",
+    "subtitle": "Simple and transparent pricing",
+    "plans": [
+      {
+        "name": "Free",
+        "price": "$0",
+        "period": "forever",
+        "description": "For personal projects and small teams",
+        "features": ["Up to 5 DNS names", "Basic SSL certificates", "Community support"],
+        "cta": "Get Started"
+      },
+      {
+        "name": "Pro",
+        "price": "$19",
+        "period": "per month",
+        "description": "For growing teams and businesses",
+        "features": ["Up to 50 DNS names", "Wildcard SSL certificates", "Priority support", "Custom DNS names"],
+        "cta": "Start Free Trial"
+      },
+      {
+        "name": "Enterprise",
+        "price": "Custom",
+        "period": "",
+        "description": "For large organizations with custom needs",
+        "features": [
+          "Unlimited DNS names",
+          "Advanced SSL certificates",
+          "Dedicated support",
+          "Custom integration",
+          "SLA guarantees"
+        ],
+        "cta": "Contact Sales"
+      }
+    ]
+  },
+  "cta": {
+    "title": "Ready to Get Started?",
+    "description": "Join thousands of developers who are already using 2DNS to secure their servers.",
+    "primaryButton": "Get Started",
+    "secondaryButton": "Contact Sales"
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  }
+}
