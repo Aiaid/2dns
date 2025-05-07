@@ -25,6 +25,8 @@ docker run -d \
   -p 8053:8053/udp -p 8053:8053/tcp \
   -e PORT=8053 \
   -e MODE=dev \
+  -e TTL=120 \
+  -e VERBOSE=true \
   -v $(pwd)/src/records.csv:/data/records.csv \
   --name 2dns 2dns
 ```
@@ -45,7 +47,7 @@ cp ../src/records.csv records/
 docker-compose up -d
 
 # Or with custom settings
-PORT=8053 MODE=dev docker-compose up -d
+PORT=8053 MODE=dev TTL=120 VERBOSE=true docker-compose up -d
 
 # View logs
 docker-compose logs -f
@@ -63,6 +65,8 @@ The container supports the following environment variables:
 | PORT | DNS server port | 53 |
 | MODE | Running mode (dev/production) | production |
 | CSV_PATH | Path to CSV file inside container | /data/records.csv |
+| TTL | Time to live for DNS records in seconds | 60 |
+| VERBOSE | Enable verbose logging (true/false) | false |
 
 ### Running Modes
 

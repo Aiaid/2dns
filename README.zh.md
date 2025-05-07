@@ -78,6 +78,8 @@ docker-compose up -d
 - `-mode`: 运行模式: `dev` 或 `production` (默认: `dev`)
 - `-port`: 指定端口号 (覆盖模式默认端口)
 - `-csv`: 包含 DNS 记录的 CSV 文件路径
+- `-ttl`: 指定 TTL 值（秒）（0 表示使用模式默认值）
+- `-verbose`: 启用详细日志记录（覆盖模式默认设置）
 
 ### CSV 文件支持
 

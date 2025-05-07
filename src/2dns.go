@@ -861,7 +861,7 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 }
 
 // Initialize configuration
-func initConfig(mode RunMode) {
+func initConfig(mode RunMode, ttlOverride uint32, verboseOverride *bool) {
 	switch mode {
 	case DevMode:
 		config = Config{
@@ -870,7 +870,17 @@ func initConfig(mode RunMode) {
 			Ports:          []int{8053}, // Use only one port in development mode
 			VerboseLogging: true,        // Detailed logging in development mode
 		}
-		log.Printf("Starting in development mode, verbose logging enabled, using port: %v", config.Ports)
+
+		// Apply overrides if provided
+		if ttlOverride > 0 {
+			config.TTL = ttlOverride
+		}
+		if verboseOverride != nil {
+			config.VerboseLogging = *verboseOverride
+		}
+
+		log.Printf("Starting in development mode, TTL: %d, verbose logging: %v, using port: %v",
+			config.TTL, config.VerboseLogging, config.Ports)
 	case ProductionMode:
 		config = Config{
 			Mode:           ProductionMode,
@@ -878,10 +888,20 @@ func initConfig(mode RunMode) {
 			Ports:          []int{53}, // Use standard DNS port 53 in production mode
 			VerboseLogging: false,     // Concise logging in production mode
 		}
-		log.Printf("Starting in production mode, concise logging enabled, using standard DNS port: %v", config.Ports)
+
+		// Apply overrides if provided
+		if ttlOverride > 0 {
+			config.TTL = ttlOverride
+		}
+		if verboseOverride != nil {
+			config.VerboseLogging = *verboseOverride
+		}
+
+		log.Printf("Starting in production mode, TTL: %d, verbose logging: %v, using standard DNS port: %v",
+			config.TTL, config.VerboseLogging, config.Ports)
 	default:
 		// Default to development mode
-		initConfig(DevMode)
+		initConfig(DevMode, ttlOverride, verboseOverride)
 	}
 }
 
@@ -890,6 +910,8 @@ func main() {
 	modeFlag := flag.String("mode", "dev", "Run mode: dev or production")
 	portFlag := flag.Int("port", 0, "Specify port number (overrides mode default port)")
 	csvFileFlag := flag.String("csv", "", "Path to CSV file containing DNS records")
+	ttlFlag := flag.Uint("ttl", 0, "Specify TTL in seconds (0 means use mode default)")
+	verboseFlag := flag.Bool("verbose", false, "Enable verbose logging (overrides mode default)")
 	flag.Parse()
 
 	// Initialize configuration
@@ -898,7 +920,7 @@ func main() {
 		log.Printf("Invalid run mode: %s, using default development mode", mode)
 		mode = DevMode
 	}
-	initConfig(mode)
+	initConfig(mode, uint32(*ttlFlag), verboseFlag)
 
 	// If port is specified, override the port in configuration
 	if *portFlag > 0 {

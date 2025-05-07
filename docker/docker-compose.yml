@@ -14,5 +14,7 @@ services:
       - PORT=${PORT:-53}
       - MODE=${MODE:-production}
       - CSV_PATH=/data/records.csv
+      - TTL=${TTL:-60}
+      - VERBOSE=${VERBOSE:-false}
     restart: unless-stopped
     container_name: 2dns

@@ -78,6 +78,8 @@ Available options:
 - `-mode`: Run mode: `dev` or `production` (default: `dev`)
 - `-port`: Specify port number (overrides mode default port)
 - `-csv`: Path to CSV file containing DNS records
+- `-ttl`: Specify TTL in seconds (0 means use mode default)
+- `-verbose`: Enable verbose logging (overrides mode default)
 
 ### CSV File Support
 

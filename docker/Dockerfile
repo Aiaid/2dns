@@ -33,10 +33,12 @@ COPY --from=builder /app/2dns .
 # Set environment variables with defaults
 ENV PORT=53 \
     MODE=production \
-    CSV_PATH=/data/records.csv
+    CSV_PATH=/data/records.csv \
+    TTL=60 \
+    VERBOSE=false
 
 # Expose DNS ports (default, can be overridden)
 EXPOSE ${PORT}/udp ${PORT}/tcp
 
 # Run with environment variables
-ENTRYPOINT ./2dns -mode ${MODE} -port ${PORT} ${CSV_PATH:+-csv ${CSV_PATH}}
+ENTRYPOINT ./2dns -mode ${MODE} -port ${PORT} ${CSV_PATH:+-csv ${CSV_PATH}} ${TTL:+-ttl ${TTL}} ${VERBOSE:+-verbose=${VERBOSE}}
