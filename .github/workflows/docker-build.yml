@@ -7,11 +7,15 @@ on:
       - completed
     branches: [ main ]
   push:
+    branches: [ main ]
     tags: [ 'v*' ]
-    paths:
+    paths-ignore:
       - 'src/**'
-      - 'docker/**'
-      - '.github/workflows/docker-build.yml'
+      - 'web/**'
+      - 'README.md'
+      - 'README.zh.md'
+      - 'GITHUB_SETUP.md'
+      - 'GITHUB_SETUP.en.md'
   pull_request:
     branches: [ main ]
     paths:
