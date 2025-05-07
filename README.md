@@ -45,10 +45,10 @@ You can use the pre-built Docker image from DockerHub:
 
 ```bash
 # Pull the image
-docker pull username/2dns
+docker pull aiaid/2dns
 
 # Run the container
-docker run -p 53:53/udp -p 53:53/tcp username/2dns
+docker run -p 53:53/udp -p 53:53/tcp aiaid/2dns
 ```
 
 Or use docker-compose:
@@ -261,3 +261,7 @@ SOFTWARE.
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## GitHub Actions and DockerHub Integration
+
+This project uses GitHub Actions for automated Docker image builds. For detailed setup instructions, see [GITHUB_SETUP.en.md](GITHUB_SETUP.en.md).

@@ -45,10 +45,10 @@ go build -o 2dns 2dns.go
 
 ```bash
 # 拉取镜像
-docker pull 用户名/2dns
+docker pull aiaid/2dns
 
 # 运行容器
-docker run -p 53:53/udp -p 53:53/tcp 用户名/2dns
+docker run -p 53:53/udp -p 53:53/tcp aiaid/2dns
 ```
 
 或者使用 docker-compose：
@@ -254,3 +254,7 @@ MIT 许可证
 ## 贡献
 
 欢迎贡献！请随时提交 Pull Request。
+
+## GitHub Actions 和 DockerHub 集成
+
+本项目使用 GitHub Actions 进行自动化 Docker 镜像构建。有关详细的设置说明，请参阅 [GITHUB_SETUP.md](GITHUB_SETUP.md)。
