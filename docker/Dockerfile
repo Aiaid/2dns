@@ -33,7 +33,7 @@ COPY --from=builder /app/2dns .
 # Set environment variables with defaults
 ENV PORT=53 \
     MODE=production \
-    CSV_PATH=/data/records.csv \
+    CSV_PATH="" \
     TTL=60 \
     VERBOSE=false
 

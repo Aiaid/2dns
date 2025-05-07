@@ -64,7 +64,7 @@ The container supports the following environment variables:
 |----------|-------------|---------|
 | PORT | DNS server port | 53 |
 | MODE | Running mode (dev/production) | production |
-| CSV_PATH | Path to CSV file inside container | /data/records.csv |
+| CSV_PATH | Path to CSV file inside container (optional) | Empty (no CSV file) |
 | TTL | Time to live for DNS records in seconds | 60 |
 | VERBOSE | Enable verbose logging (true/false) | false |
 
@@ -74,6 +74,8 @@ The container supports the following environment variables:
 - **dev**: Uses shorter TTL of 30 seconds and verbose logging
 
 ### Custom CSV Files
+
+The CSV file is optional. If you don't provide one, the server will run in IP reflection mode only.
 
 To use your own DNS records:
 

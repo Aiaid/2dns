@@ -13,7 +13,7 @@ services:
     environment:
       - PORT=${PORT:-53}
       - MODE=${MODE:-production}
-      - CSV_PATH=/data/records.csv
+      - CSV_PATH=${CSV_PATH:-}
       - TTL=${TTL:-60}
       - VERBOSE=${VERBOSE:-false}
     restart: unless-stopped
