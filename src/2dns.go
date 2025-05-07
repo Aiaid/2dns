@@ -549,10 +549,8 @@ func removeEmptyStrings(slice []string) []string {
 // base32ToIPv4 decodes a Base32 encoded string to an IPv4 address
 // Similar to the base32_to_ipv4 function in the Python implementation
 func base32ToIPv4(b32Str string) (net.IP, bool) {
-	// Check for specific invalid encoding
-	if b32Str == "INVALID8" {
-		return nil, false
-	}
+	// Convert to uppercase to support both upper and lowercase input
+	b32Str = strings.ToUpper(b32Str)
 
 	// 1. Replace trailing '8' with '='
 	sStripped := strings.TrimRight(b32Str, "8")
@@ -580,10 +578,8 @@ func base32ToIPv4(b32Str string) (net.IP, bool) {
 // base32ToIPv6 decodes a Base32 encoded string to an IPv6 address
 // Similar to the base32_to_ipv6 function in the Python implementation
 func base32ToIPv6(b32Str string) (net.IP, bool) {
-	// Special handling for test case
-	if b32Str == "ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS" {
-		return net.ParseIP("2001:0db8:85a3:0000:0000:8a2e:0370:7334"), true
-	}
+	// Convert to uppercase to support both upper and lowercase input
+	b32Str = strings.ToUpper(b32Str)
 
 	// 1. Replace trailing '8' with '='
 	sStripped := strings.TrimRight(b32Str, "8")
@@ -621,20 +617,8 @@ func parseDualStackAddress(qname string, qtype uint16) (net.IP, bool) {
 	}
 
 	prefix := labels[0]
-
-	// Special handling for test case
-	if prefix == "short" {
-		return nil, false
-	}
-
-	// Special handling for test case
-	if prefix == "AEBAGBA8ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS" {
-		if qtype == dns.TypeA {
-			return net.ParseIP("1.2.3.4").To4(), true
-		} else if qtype == dns.TypeAAAA {
-			return net.ParseIP("2001:0db8:85a3:0000:0000:8a2e:0370:7334"), true
-		}
-	}
+	// Convert to uppercase to support both upper and lowercase input
+	prefix = strings.ToUpper(prefix)
 
 	// Check if prefix length is sufficient
 	if len(prefix) < 8 {

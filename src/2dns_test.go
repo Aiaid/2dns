@@ -1005,8 +1005,20 @@ func TestBase32ToIPv4(t *testing.T) {
 			wantBool: true,
 		},
 		{
+			name:     "Valid Base32 encoded IPv4 with lowercase",
+			b32Str:   "aebagba8", // Lowercase version of the same encoding
+			wantIP:   net.ParseIP("1.2.3.4").To4(),
+			wantBool: true,
+		},
+		{
+			name:     "Valid Base32 encoded IPv4 with mixed case",
+			b32Str:   "AebAgBa8", // Mixed case version
+			wantIP:   net.ParseIP("1.2.3.4").To4(),
+			wantBool: true,
+		},
+		{
 			name:     "Invalid Base32 encoding",
-			b32Str:   "INVALID8",
+			b32Str:   "INVALID1", // '1' is not in Base32 character set
 			wantIP:   nil,
 			wantBool: false,
 		},
@@ -1041,7 +1053,19 @@ func TestBase32ToIPv6(t *testing.T) {
 	}{
 		{
 			name:     "Valid Base32 encoded IPv6",
-			b32Str:   "ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS", // Base32 encoding of 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+			b32Str:   "EAAQ3OEFUMAAAAAARIXAG4DTGQ888888", // Base32 encoding of 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+			wantIP:   net.ParseIP("2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
+			wantBool: true,
+		},
+		{
+			name:     "Valid Base32 encoded IPv6 with lowercase",
+			b32Str:   "eaaq3oefumaaaaaarixag4dtgq888888", // Lowercase version
+			wantIP:   net.ParseIP("2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
+			wantBool: true,
+		},
+		{
+			name:     "Valid Base32 encoded IPv6 with mixed case",
+			b32Str:   "EaAq3OeFuMaAaAaArIxAg4DtGq888888", // Mixed case version
 			wantIP:   net.ParseIP("2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
 			wantBool: true,
 		},
@@ -1075,7 +1099,7 @@ func TestBase32ToIPv6(t *testing.T) {
 // Test dual-stack address parsing
 func TestParseDualStackAddress(t *testing.T) {
 	// Create a 40-character prefix, first 8 characters are Base32 encoding of IPv4, remaining 32 characters are Base32 encoding of IPv6
-	dualStackPrefix := "AEBAGBA8ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS"
+	dualStackPrefix := "AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888"
 	domain := "example.com."
 	qname := dualStackPrefix + "." + domain
 
@@ -1094,6 +1118,34 @@ func TestParseDualStackAddress(t *testing.T) {
 	// Test TypeAAAA query
 	t.Run("TypeAAAA query", func(t *testing.T) {
 		gotIP, gotBool := parseDualStackAddress(qname, dns.TypeAAAA)
+		if !gotBool {
+			t.Errorf("parseDualStackAddress() return value = %v, expected true", gotBool)
+		}
+		expectedIP := net.ParseIP("2001:0db8:85a3:0000:0000:8a2e:0370:7334")
+		if !gotIP.Equal(expectedIP) {
+			t.Errorf("parseDualStackAddress() IP = %v, expected %v", gotIP, expectedIP)
+		}
+	})
+
+	// Test with lowercase prefix
+	lowercasePrefix := "aebagba8eaaq3oefumaaaaaarixag4dtgq888888"
+	lowercaseQname := lowercasePrefix + "." + domain
+
+	// Test TypeA query with lowercase
+	t.Run("TypeA query with lowercase", func(t *testing.T) {
+		gotIP, gotBool := parseDualStackAddress(lowercaseQname, dns.TypeA)
+		if !gotBool {
+			t.Errorf("parseDualStackAddress() return value = %v, expected true", gotBool)
+		}
+		expectedIP := net.ParseIP("1.2.3.4").To4()
+		if !gotIP.Equal(expectedIP) {
+			t.Errorf("parseDualStackAddress() IP = %v, expected %v", gotIP, expectedIP)
+		}
+	})
+
+	// Test TypeAAAA query with lowercase
+	t.Run("TypeAAAA query with lowercase", func(t *testing.T) {
+		gotIP, gotBool := parseDualStackAddress(lowercaseQname, dns.TypeAAAA)
 		if !gotBool {
 			t.Errorf("parseDualStackAddress() return value = %v, expected true", gotBool)
 		}

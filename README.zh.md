@@ -12,7 +12,7 @@
 - 多种编码格式:
   - 直接 IPv4 反射
   - 支持多种表示法格式的 IPv6
-  - IPv4 和 IPv6 地址的 Base32 编码
+  - IPv4 和 IPv6 地址的 Base32 编码（大小写不敏感）
   - 双栈支持（在单个域名中同时包含 IPv4 和 IPv6）
 - 在多个端口和网络类型上运行，以实现最大兼容性
 - 轻量高效的 Go 语言实现
@@ -196,6 +196,8 @@ dig @2dns.dev AEBAGBA8.2dns.dev A
 
 这将返回 `1.2.3.4` 作为 A 记录（AEBAGBA8 是 1.2.3.4 的 Base32 编码，其中 '8' 替代了填充字符 '='）。
 
+注意：Base32 编码对大小写不敏感。支持大写和小写字母，因为小写字母在解码前会自动转换为大写。
+
 #### 4. Base32 编码的 IPv6
 
 格式: `<base32-encoded-ipv6>.<domain>`
@@ -206,6 +208,8 @@ dig @2dns.dev ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev AAAA
 ```
 
 这将返回 `2001:0db8:85a3:0000:0000:8a2e:0370:7334` 作为 AAAA 记录（其中 '8' 替代了填充字符 '='）。
+
+注意：与 IPv4 一样，IPv6 的 Base32 编码也对大小写不敏感。
 
 #### 5. 双栈（IPv4 + IPv6）
 
@@ -224,6 +228,8 @@ dig @2dns.dev AEBAGBA8ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev AAAA
 ```
 
 这将返回 `2001:0db8:85a3:0000:0000:8a2e:0370:7334` 作为 AAAA 记录。
+
+注意：双栈编码也对大小写不敏感，允许在 Base32 编码部分使用大写和小写字母。
 
 ## 技术细节
 

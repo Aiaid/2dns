@@ -12,7 +12,7 @@
 - Multiple encoding formats:
   - Direct IPv4 reflection
   - IPv6 with various notation formats
-  - Base32 encoding for both IPv4 and IPv6 addresses
+  - Base32 encoding for both IPv4 and IPv6 addresses (case-insensitive)
   - Dual-stack support (both IPv4 and IPv6 in a single domain)
 - Runs on multiple ports and network types for maximum compatibility
 - Lightweight and efficient Go implementation
@@ -196,6 +196,8 @@ dig @2dns.dev AEBAGBA8.2dns.dev A
 
 This will return `1.2.3.4` as an A record (AEBAGBA8 is the Base32 encoding of 1.2.3.4, with '8' replacing the padding character '=').
 
+Note: Base32 encoding is case-insensitive. Both uppercase and lowercase letters are supported, as lowercase letters are automatically converted to uppercase before decoding.
+
 #### 4. Base32 Encoded IPv6
 
 Format: `<base32-encoded-ipv6>.<domain>`
@@ -206,6 +208,8 @@ dig @2dns.dev ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev AAAA
 ```
 
 This will return `2001:0db8:85a3:0000:0000:8a2e:0370:7334` as an AAAA record (with '8' replacing the padding character '=').
+
+Note: Just like with IPv4, Base32 encoding for IPv6 is also case-insensitive.
 
 #### 5. Dual-Stack (IPv4 + IPv6)
 
@@ -224,6 +228,8 @@ dig @2dns.dev AEBAGBA8ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev AAAA
 ```
 
 This will return `2001:0db8:85a3:0000:0000:8a2e:0370:7334` as an AAAA record.
+
+Note: Dual-stack encoding is also case-insensitive, allowing for both uppercase and lowercase letters in the Base32 encoded parts.
 
 ## Technical Details
 
