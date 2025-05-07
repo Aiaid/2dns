@@ -1,0 +1,29 @@
+# Version control
+.git
+.gitignore
+
+# Web application files (not needed for the Go server)
+web/
+
+# Documentation
+*.md
+LICENSE
+
+# Docker files
+docker/
+
+# Images and other assets
+*.svg
+*.png
+*.jpg
+*.jpeg
+
+# Editor configs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.log
