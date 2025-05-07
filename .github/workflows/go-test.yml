@@ -1,0 +1,45 @@
+name: Go Tests
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'  # 只有当 src 目录下的文件变更时才触发
+      - '.github/workflows/go-test.yml'  # 工作流文件本身变更时也触发
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'  # 只有当 src 目录下的文件变更时才触发
+      - '.github/workflows/go-test.yml'  # 工作流文件本身变更时也触发
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.2'
+          cache: true
+      
+      - name: Download dependencies
+        run: go mod download
+      
+      - name: Run tests with coverage
+        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+      
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: ./src/coverage.txt
+          retention-days: 7

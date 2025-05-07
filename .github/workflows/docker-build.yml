@@ -1,14 +1,28 @@
 name: Build and Push Docker Image
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Go Tests"]
+    types:
+      - completed
     branches: [ main ]
+  push:
     tags: [ 'v*' ]
+    paths:
+      - 'src/**'
+      - 'docker/**'
+      - '.github/workflows/docker-build.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'docker/**'
+      - '.github/workflows/docker-build.yml'
 
 jobs:
   build:
+    # 只有当触发工作流的工作流运行成功时才运行
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -22,6 +36,11 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      # 生成日期时间标签
+      - name: Generate date-time tag
+        id: datetime
+        run: echo "datetime=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: Extract metadata for Docker
         id: meta
@@ -31,9 +50,8 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=raw,value=${{ steps.datetime.outputs.datetime }}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
             type=sha
 
       - name: Build and push Docker image
