@@ -25,9 +25,11 @@ You can use the public 2DNS service at [2dns.dev](https://2dns.dev) without any 
 
 ### Self-Hosting
 
+#### Option 1: Build from Source
+
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/2dns.git
+git clone https://github.com/Aiaid/2dns.git
 cd 2dns/src
 
 # Build the binary
@@ -37,11 +39,99 @@ go build -o 2dns 2dns.go
 ./2dns
 ```
 
+#### Option 2: Using Docker
+
+You can use the pre-built Docker image from DockerHub:
+
+```bash
+# Pull the image
+docker pull username/2dns
+
+# Run the container
+docker run -p 53:53/udp -p 53:53/tcp username/2dns
+```
+
+Or use docker-compose:
+
+```bash
+# Clone the repository
+git clone https://github.com/Aiaid/2dns.git
+cd 2dns/docker
+
+# Run with docker-compose
+docker-compose up -d
+```
+
 ## Usage
 
 The public service at [2dns.dev](https://2dns.dev) listens on standard DNS ports (53/UDP and 53/TCP).
 
 If you're self-hosting, the server listens on ports 8053-8058 for DNS queries and responds with the IP address encoded in the domain name.
+
+### Command Line Options
+
+```bash
+./2dns [options]
+```
+
+Available options:
+- `-mode`: Run mode: `dev` or `production` (default: `dev`)
+- `-port`: Specify port number (overrides mode default port)
+- `-csv`: Path to CSV file containing DNS records
+
+### CSV File Support
+
+In addition to the IP reflection functionality, 2DNS can also serve traditional DNS records from a CSV file. This allows you to use 2DNS as a simple authoritative DNS server for your domains.
+
+#### CSV File Format
+
+The CSV file should have the following columns:
+- `name`: The domain name (e.g., `example.com` or `*.example.com` for wildcard records)
+- `type`: The DNS record type (A, AAAA, CNAME, MX, TXT, etc.)
+- `value`: The record value
+- `ttl`: (Optional) Time to live in seconds (defaults to the server's TTL if not specified)
+- `priority`: (Optional) Priority for MX and SRV records
+- `weight`: (Optional) Weight for SRV records
+- `port`: (Optional) Port for SRV records
+
+Example CSV file:
+```csv
+name,type,value,ttl,priority,weight,port
+example.com,A,192.168.1.1,3600,,,
+example.com,AAAA,2001:db8::1,3600,,,
+example.com,TXT,"This is a test record",3600,,,
+www.example.com,CNAME,example.com,3600,,,
+example.com,MX,mail.example.com,3600,10,,
+_sip._tcp.example.com,SRV,sip.example.com,3600,10,20,5060
+*.example.com,A,192.168.1.2,3600,,,
+```
+
+#### Supported Record Types
+
+- **A**: IPv4 address records
+- **AAAA**: IPv6 address records
+- **CNAME**: Canonical name records
+- **MX**: Mail exchange records
+- **NS**: Name server records
+- **PTR**: Pointer records
+- **SOA**: Start of authority records
+- **SRV**: Service records
+- **TXT**: Text records
+- **CAA**: Certification Authority Authorization records
+
+#### Wildcard Records
+
+Wildcard records are supported using the `*` character. For example, `*.example.com` will match any subdomain of `example.com` that doesn't have an explicit record.
+
+#### Usage Example
+
+```bash
+./2dns -csv records.csv
+```
+
+When a DNS query is received, 2DNS will:
+1. First check if there's a matching record in the CSV file
+2. If no match is found, fall back to the IP reflection functionality
 
 ### Supported Formats
 

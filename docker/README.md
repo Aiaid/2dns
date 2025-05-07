@@ -17,8 +17,16 @@ To build and run the 2DNS container directly with Docker:
 # Build the image
 docker build -t 2dns -f docker/Dockerfile .
 
-# Run the container
+# Run the container with default settings
 docker run -d -p 53:53/udp -p 53:53/tcp --name 2dns 2dns
+
+# Run with custom settings
+docker run -d \
+  -p 8053:8053/udp -p 8053:8053/tcp \
+  -e PORT=8053 \
+  -e MODE=dev \
+  -v $(pwd)/src/records.csv:/data/records.csv \
+  --name 2dns 2dns
 ```
 
 ### Using Docker Compose
@@ -29,8 +37,15 @@ For easier management, you can use Docker Compose:
 # Navigate to the docker directory
 cd docker
 
-# Build and start the container
+# Create a records directory and copy your CSV file
+mkdir -p records
+cp ../src/records.csv records/
+
+# Build and start the container with default settings
 docker-compose up -d
+
+# Or with custom settings
+PORT=8053 MODE=dev docker-compose up -d
 
 # View logs
 docker-compose logs -f
@@ -41,25 +56,53 @@ docker-compose down
 
 ## Configuration
 
-The container runs 2DNS in production mode by default, which uses:
+The container supports the following environment variables:
 
-- Port 53 for both UDP and TCP
-- Standard TTL of 60 seconds
-- Concise logging
+| Variable | Description | Default |
+|----------|-------------|---------|
+| PORT | DNS server port | 53 |
+| MODE | Running mode (dev/production) | production |
+| CSV_PATH | Path to CSV file inside container | /data/records.csv |
+
+### Running Modes
+
+- **production**: Uses standard TTL of 60 seconds and concise logging
+- **dev**: Uses shorter TTL of 30 seconds and verbose logging
+
+### Custom CSV Files
+
+To use your own DNS records:
+
+1. Create a CSV file with your records (see example in `src/records.csv`)
+2. Mount this file into the container at `/data/records.csv`
+
+Example CSV format:
+```
+name,type,value,ttl,priority,weight,port
+example.com,A,192.168.1.1,3600,,,
+www.example.com,CNAME,example.com,3600,,,
+```
 
 ## Testing
 
 After starting the container, you can test it with:
 
 ```bash
-# Test IPv4 reflection
+# Test IPv4 reflection (using default port 53)
 dig @localhost 1.2.3.4.2dns.dev A
+
+# Test with custom port
+dig @localhost -p 8053 1.2.3.4.2dns.dev A
 
 # Test IPv6 reflection
 dig @localhost 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev AAAA
+
+# Test with custom records (if you've mounted a CSV file)
+dig @localhost example.com A
 ```
 
 ## Notes
 
 - The container needs to be run with appropriate permissions to bind to port 53
 - On some systems, you may need to stop any local DNS services that are using port 53
+- When using a custom port, make sure to update both the container port mapping and the PORT environment variable

@@ -6,7 +6,13 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     ports:
-      - "53:53/udp"
-      - "53:53/tcp"
+      - "${PORT:-53}:${PORT:-53}/udp"
+      - "${PORT:-53}:${PORT:-53}/tcp"
+    volumes:
+      - ./records:/data
+    environment:
+      - PORT=${PORT:-53}
+      - MODE=${MODE:-production}
+      - CSV_PATH=/data/records.csv
     restart: unless-stopped
     container_name: 2dns

@@ -25,9 +25,11 @@
 
 ### 自行托管
 
+#### 选项 1: 从源代码构建
+
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/2dns.git
+git clone https://github.com/Aiaid/2dns.git
 cd 2dns/src
 
 # 构建二进制文件
@@ -37,11 +39,99 @@ go build -o 2dns 2dns.go
 ./2dns
 ```
 
+#### 选项 2: 使用 Docker
+
+您可以使用 DockerHub 上的预构建 Docker 镜像：
+
+```bash
+# 拉取镜像
+docker pull 用户名/2dns
+
+# 运行容器
+docker run -p 53:53/udp -p 53:53/tcp 用户名/2dns
+```
+
+或者使用 docker-compose：
+
+```bash
+# 克隆仓库
+git clone https://github.com/Aiaid/2dns.git
+cd 2dns/docker
+
+# 使用 docker-compose 运行
+docker-compose up -d
+```
+
 ## 使用方法
 
 [2dns.dev](https://2dns.dev) 上的公共服务监听标准 DNS 端口（53/UDP 和 53/TCP）。
 
 如果您自行托管，服务器会在端口 8053-8058 上监听 DNS 查询，并返回域名中编码的 IP 地址。
+
+### 命令行选项
+
+```bash
+./2dns [选项]
+```
+
+可用选项:
+- `-mode`: 运行模式: `dev` 或 `production` (默认: `dev`)
+- `-port`: 指定端口号 (覆盖模式默认端口)
+- `-csv`: 包含 DNS 记录的 CSV 文件路径
+
+### CSV 文件支持
+
+除了 IP 反射功能外，2DNS 还可以从 CSV 文件提供传统的 DNS 记录。这允许您将 2DNS 用作域名的简单权威 DNS 服务器。
+
+#### CSV 文件格式
+
+CSV 文件应具有以下列:
+- `name`: 域名 (例如, `example.com` 或 `*.example.com` 用于通配符记录)
+- `type`: DNS 记录类型 (A, AAAA, CNAME, MX, TXT 等)
+- `value`: 记录值
+- `ttl`: (可选) 生存时间，以秒为单位 (如果未指定，则默认为服务器的 TTL)
+- `priority`: (可选) MX 和 SRV 记录的优先级
+- `weight`: (可选) SRV 记录的权重
+- `port`: (可选) SRV 记录的端口
+
+CSV 文件示例:
+```csv
+name,type,value,ttl,priority,weight,port
+example.com,A,192.168.1.1,3600,,,
+example.com,AAAA,2001:db8::1,3600,,,
+example.com,TXT,"这是一条测试记录",3600,,,
+www.example.com,CNAME,example.com,3600,,,
+example.com,MX,mail.example.com,3600,10,,
+_sip._tcp.example.com,SRV,sip.example.com,3600,10,20,5060
+*.example.com,A,192.168.1.2,3600,,,
+```
+
+#### 支持的记录类型
+
+- **A**: IPv4 地址记录
+- **AAAA**: IPv6 地址记录
+- **CNAME**: 规范名称记录
+- **MX**: 邮件交换记录
+- **NS**: 名称服务器记录
+- **PTR**: 指针记录
+- **SOA**: 权威起始记录
+- **SRV**: 服务记录
+- **TXT**: 文本记录
+- **CAA**: 证书颁发机构授权记录
+
+#### 通配符记录
+
+通配符记录使用 `*` 字符支持。例如，`*.example.com` 将匹配任何没有显式记录的 `example.com` 子域。
+
+#### 使用示例
+
+```bash
+./2dns -csv records.csv
+```
+
+当收到 DNS 查询时，2DNS 将:
+1. 首先检查 CSV 文件中是否有匹配的记录
+2. 如果没有找到匹配项，则回退到 IP 反射功能
 
 ### 支持的格式
 

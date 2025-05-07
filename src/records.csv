@@ -1,0 +1,17 @@
+name,type,value,ttl,priority,weight,port
+example.com,A,192.168.1.1,3600,,,
+example.com,AAAA,2001:db8::1,3600,,,
+example.com,TXT,"This is a test record",3600,,,
+www.example.com,CNAME,example.com,3600,,,
+example.com,MX,mail.example.com,3600,10,,
+_sip._tcp.example.com,SRV,sip.example.com,3600,10,20,5060
+*.example.com,A,192.168.1.2,3600,,,
+blog.example.com,A,192.168.1.3,3600,,,
+api.example.com,A,192.168.1.4,3600,,,
+mail.example.com,A,192.168.1.5,3600,,,
+mail.example.com,MX,mail.example.com,3600,5,,
+example.com,CAA,"0 issue ""letsencrypt.org""",3600,,,
+example.com,NS,ns1.example.com,3600,,,
+example.com,NS,ns2.example.com,3600,,,
+ns1.example.com,A,192.168.1.10,3600,,,
+ns2.example.com,A,192.168.1.11,3600,,,

@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24.2-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -22,13 +22,21 @@ FROM alpine:latest
 # Install CA certificates for HTTPS
 RUN apk --no-cache add ca-certificates
 
+# Create directory for user-provided CSV files
+RUN mkdir -p /data
+
 WORKDIR /root/
 
 # Copy the binary from the build stage
 COPY --from=builder /app/2dns .
 
-# Expose DNS ports
-EXPOSE 53/udp 53/tcp
+# Set environment variables with defaults
+ENV PORT=53 \
+    MODE=production \
+    CSV_PATH=/data/records.csv
 
-# Run in production mode
-ENTRYPOINT ["./2dns", "-mode", "production"]
+# Expose DNS ports (default, can be overridden)
+EXPOSE ${PORT}/udp ${PORT}/tcp
+
+# Run with environment variables
+ENTRYPOINT ./2dns -mode ${MODE} -port ${PORT} ${CSV_PATH:+-csv ${CSV_PATH}}
