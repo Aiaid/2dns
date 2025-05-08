@@ -7,8 +7,17 @@
     // This is a fallback index.html file that will redirect to the correct page
     // It's used when accessing the site directly via GitHub Pages
     
-    // Redirect to the main application
-    window.location.replace('/2dns/en/');
+    // Get the current origin (domain)
+    var origin = window.location.origin;
+    
+    // Check if we're on GitHub Pages
+    var isGitHubPages = origin.indexOf('github.io') > -1;
+    
+    // Construct the base path - this handles both GitHub Pages and custom domains
+    var basePath = isGitHubPages ? '/2dns' : '';
+    
+    // Redirect to the main application with the correct base path
+    window.location.replace(basePath + '/en/');
   </script>
   <style>
     body {
@@ -45,7 +54,7 @@
   <div class="loading">
     <div class="spinner"></div>
     <h1>Loading 2DNS...</h1>
-    <p>If you are not redirected automatically, <a href="/2dns/en/">click here</a>.</p>
+    <p>If you are not redirected automatically, <a href="./en/">click here</a>.</p>
   </div>
 </body>
 </html>

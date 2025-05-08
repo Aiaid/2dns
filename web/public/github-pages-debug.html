@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>2DNS - GitHub Pages Debug</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #f5f5f5;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+    .info-box {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .info-item {
+      margin-bottom: 10px;
+    }
+    .label {
+      font-weight: bold;
+      display: inline-block;
+      width: 150px;
+    }
+    .value {
+      font-family: monospace;
+      background-color: #f0f0f0;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+    .test-result {
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 4px;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .warning {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>GitHub Pages Debug Information</h1>
+    
+    <div class="info-box">
+      <h2>Environment Information</h2>
+      <div class="info-item">
+        <span class="label">Current URL:</span>
+        <span class="value" id="current-url"></span>
+      </div>
+      <div class="info-item">
+        <span class="label">Origin:</span>
+        <span class="value" id="origin"></span>
+      </div>
+      <div class="info-item">
+        <span class="label">Pathname:</span>
+        <span class="value" id="pathname"></span>
+      </div>
+      <div class="info-item">
+        <span class="label">Is GitHub Pages:</span>
+        <span class="value" id="is-github-pages"></span>
+      </div>
+      <div class="info-item">
+        <span class="label">Detected Base Path:</span>
+        <span class="value" id="base-path"></span>
+      </div>
+    </div>
+    
+    <div class="info-box">
+      <h2>Navigation Tests</h2>
+      <div class="info-item">
+        <button onclick="testNavigation('/')">Test Root Navigation</button>
+        <div id="root-test-result" class="test-result"></div>
+      </div>
+      <div class="info-item">
+        <button onclick="testNavigation('/en/')">Test English Navigation</button>
+        <div id="en-test-result" class="test-result"></div>
+      </div>
+      <div class="info-item">
+        <button onclick="testNavigation('/zh/')">Test Chinese Navigation</button>
+        <div id="zh-test-result" class="test-result"></div>
+      </div>
+    </div>
+    
+    <div class="info-box">
+      <h2>Resource Tests</h2>
+      <div class="info-item">
+        <button onclick="testResource('/2dns_logo.svg')">Test Logo</button>
+        <div id="logo-test-result" class="test-result"></div>
+      </div>
+    </div>
+    
+    <div class="info-box">
+      <h2>Recommendations</h2>
+      <div id="recommendations">
+        Running diagnostics...
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Get URL information
+    const currentUrl = window.location.href;
+    const origin = window.location.origin;
+    const pathname = window.location.pathname;
+    const isGitHubPages = origin.indexOf('github.io') > -1;
+    const basePath = isGitHubPages ? '/2dns' : '';
+    
+    // Display basic information
+    document.getElementById('current-url').textContent = currentUrl;
+    document.getElementById('origin').textContent = origin;
+    document.getElementById('pathname').textContent = pathname;
+    document.getElementById('is-github-pages').textContent = isGitHubPages;
+    document.getElementById('base-path').textContent = basePath;
+    
+    // Test navigation to a path
+    function testNavigation(path) {
+      const fullPath = basePath + path;
+      const resultId = path === '/' ? 'root-test-result' : 
+                      path === '/en/' ? 'en-test-result' : 'zh-test-result';
+      
+      document.getElementById(resultId).textContent = `Testing navigation to ${fullPath}...`;
+      document.getElementById(resultId).className = 'test-result warning';
+      
+      fetch(fullPath, { method: 'HEAD' })
+        .then(response => {
+          if (response.ok) {
+            document.getElementById(resultId).textContent = `✅ Path ${fullPath} is accessible`;
+            document.getElementById(resultId).className = 'test-result success';
+          } else {
+            document.getElementById(resultId).textContent = `❌ Path ${fullPath} returned status: ${response.status}`;
+            document.getElementById(resultId).className = 'test-result error';
+          }
+        })
+        .catch(error => {
+          document.getElementById(resultId).textContent = `❌ Error accessing ${fullPath}: ${error.message}`;
+          document.getElementById(resultId).className = 'test-result error';
+        });
+    }
+    
+    // Test resource loading
+    function testResource(path) {
+      const fullPath = basePath + path;
+      
+      document.getElementById('logo-test-result').textContent = `Testing resource at ${fullPath}...`;
+      document.getElementById('logo-test-result').className = 'test-result warning';
+      
+      fetch(fullPath, { method: 'HEAD' })
+        .then(response => {
+          if (response.ok) {
+            document.getElementById('logo-test-result').textContent = `✅ Resource ${fullPath} is accessible`;
+            document.getElementById('logo-test-result').className = 'test-result success';
+          } else {
+            document.getElementById('logo-test-result').textContent = `❌ Resource ${fullPath} returned status: ${response.status}`;
+            document.getElementById('logo-test-result').className = 'test-result error';
+          }
+        })
+        .catch(error => {
+          document.getElementById('logo-test-result').textContent = `❌ Error accessing ${fullPath}: ${error.message}`;
+          document.getElementById('logo-test-result').className = 'test-result error';
+        });
+    }
+    
+    // Generate recommendations
+    function generateRecommendations() {
+      let recommendations = [];
+      
+      if (!isGitHubPages) {
+        recommendations.push("You're not currently on GitHub Pages. This debug page is most useful when accessed from your GitHub Pages deployment.");
+      }
+      
+      if (pathname.indexOf('/github-pages-debug.html') === -1) {
+        recommendations.push("This page should be accessed directly as '/github-pages-debug.html' for accurate diagnostics.");
+      }
+      
+      // Check if we're in the correct repository structure
+      if (isGitHubPages && pathname.indexOf('/2dns/') === -1) {
+        recommendations.push("Your site doesn't seem to be using the '/2dns' base path. Check your repository name and Next.js configuration.");
+      }
+      
+      if (recommendations.length === 0) {
+        recommendations.push("No issues detected with your current setup. If you're still experiencing problems, try running the navigation tests above.");
+      }
+      
+      document.getElementById('recommendations').innerHTML = recommendations.map(rec => `<p>• ${rec}</p>`).join('');
+    }
+    
+    // Run diagnostics on page load
+    window.onload = function() {
+      generateRecommendations();
+    };
+  </script>
+</body>
+</html>

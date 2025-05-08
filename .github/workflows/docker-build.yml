@@ -9,13 +9,9 @@ on:
   push:
     branches: [ main ]
     tags: [ 'v*' ]
-    paths-ignore:
-      - 'src/**'
-      - 'web/**'
-      - 'README.md'
-      - 'README.zh.md'
-      - 'GITHUB_SETUP.md'
-      - 'GITHUB_SETUP.en.md'
+    paths:
+      - 'docker/**'
+      - '.github/workflows/docker-build.yml'
   pull_request:
     branches: [ main ]
     paths:

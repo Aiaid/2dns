@@ -54,22 +54,28 @@ This guide will help you set up GitHub Pages to host the web frontend of your 2D
 
 If your site doesn't appear or has issues:
 
-1. **Check workflow runs**
+1. **Use the Debug Tool**
+   
+   - Access the debug tool at `https://[username].github.io/2dns/github-pages-debug.html`
+   - This tool will show you information about your deployment and help diagnose issues
+   - Run the navigation and resource tests to check if specific paths are accessible
+
+2. **Check workflow runs**
    
    - Go to the "Actions" tab to see if the workflow completed successfully
    - If there are errors, fix them and push again
 
-2. **Verify the gh-pages branch**
+3. **Verify the gh-pages branch**
    
    - Check if the `gh-pages` branch was created
    - Ensure it contains the built website files
 
-3. **Check base path configuration**
+4. **Check base path configuration**
    
    - If links or assets are broken, ensure the `basePath` in `next.config.mjs` is set correctly
    - The environment variable `NEXT_PUBLIC_BASE_PATH` should be set to `/2dns` in the workflow
 
-4. **Permission issues**
+5. **Permission issues**
    
    - If you see errors like "Permission denied to github-actions[bot]", ensure the workflow has proper permissions
    - Check that the workflow file includes the following permissions section:
@@ -82,7 +88,13 @@ If your site doesn't appear or has issues:
    - You may also need to check repository settings under Settings → Actions → General → Workflow permissions
      and ensure "Read and write permissions" is selected
 
-4. **Custom domain (optional)**
+6. **Check HTML files in public directory**
+   
+   - The `index.html` and `404.html` files in the `web/public` directory are important for GitHub Pages
+   - They handle redirects and fallbacks when users access your site directly
+   - Make sure they correctly handle the base path (`/2dns`) for GitHub Pages
+
+7. **Custom domain (optional)**
    
    If you want to use a custom domain:
    

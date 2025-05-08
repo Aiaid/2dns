@@ -11,10 +11,23 @@
     // to the new URL with only a query string and hash fragment.
     // This is necessary for Single Page Apps that use the HTML5 history API.
     
+    // Get the current origin (domain)
+    var origin = window.location.origin;
+    
+    // Check if we're on GitHub Pages
+    var isGitHubPages = origin.indexOf('github.io') > -1;
+    
+    // Construct the base path - this handles both GitHub Pages and custom domains
+    var basePath = isGitHubPages ? '/2dns' : '';
+    
     // Parse the URL
     var pathSegments = location.pathname.split('/');
-    var basePath = '/2dns'; // Update this to match your repo name
-    var isBasePathInUrl = pathSegments.length > 1 && ('/' + pathSegments[1]) === basePath;
+    var isBasePathInUrl = false;
+    
+    // Check if the base path is already in the URL (only if we're on GitHub Pages)
+    if (isGitHubPages && pathSegments.length > 1) {
+      isBasePathInUrl = ('/' + pathSegments[1]) === basePath;
+    }
     
     // If this is a direct hit on the 404.html page, redirect to the index page
     if (location.pathname === '/404.html' || location.pathname === basePath + '/404.html') {
@@ -34,6 +47,6 @@
 </head>
 <body>
   <h1>Redirecting...</h1>
-  <p>If you are not redirected automatically, <a href="/2dns/">click here</a>.</p>
+  <p>If you are not redirected automatically, <a href="/">click here</a>.</p>
 </body>
 </html>

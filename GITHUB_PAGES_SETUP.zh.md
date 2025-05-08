@@ -54,22 +54,28 @@
 
 如果您的网站没有出现或有问题：
 
-1. **检查工作流程运行**
+1. **使用调试工具**
+   
+   - 访问调试工具：`https://[username].github.io/2dns/github-pages-debug.html`
+   - 此工具将显示有关您的部署的信息，并帮助诊断问题
+   - 运行导航和资源测试，检查特定路径是否可访问
+
+2. **检查工作流程运行**
    
    - 转到 "Actions" 选项卡，查看工作流程是否成功完成
    - 如果有错误，修复它们并再次推送
 
-2. **验证 gh-pages 分支**
+3. **验证 gh-pages 分支**
    
    - 检查是否创建了 `gh-pages` 分支
    - 确保它包含构建的网站文件
 
-3. **检查基本路径配置**
+4. **检查基本路径配置**
    
    - 如果链接或资源损坏，确保 `next.config.mjs` 中的 `basePath` 设置正确
    - 工作流程中的环境变量 `NEXT_PUBLIC_BASE_PATH` 应设置为 `/2dns`
 
-4. **权限问题**
+5. **权限问题**
    
    - 如果您看到类似 "Permission denied to github-actions[bot]" 的错误，请确保工作流程具有适当的权限
    - 检查工作流程文件是否包含以下权限部分：
@@ -82,7 +88,13 @@
    - 您可能还需要检查仓库设置中的 Settings → Actions → General → Workflow permissions，
      并确保选择了 "Read and write permissions"
 
-4. **自定义域名（可选）**
+6. **检查 public 目录中的 HTML 文件**
+   
+   - `web/public` 目录中的 `index.html` 和 `404.html` 文件对 GitHub Pages 很重要
+   - 它们处理用户直接访问您的网站时的重定向和回退
+   - 确保它们正确处理 GitHub Pages 的基本路径 (`/2dns`)
+
+7. **自定义域名（可选）**
    
    如果您想使用自定义域名：
    
