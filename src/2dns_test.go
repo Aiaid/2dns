@@ -82,6 +82,14 @@ func TestCreateRR(t *testing.T) {
 			wantNil:  false,
 		},
 		{
+			name:     "SOA record",
+			record:   DNSRecord{Type: "SOA", Value: "ns1.example.com. admin.example.com. 2025050801 3600 1800 604800 86400", TTL: 3600},
+			qname:    "example.com",
+			qtype:    dns.TypeSOA,
+			wantType: dns.TypeSOA,
+			wantNil:  false,
+		},
+		{
 			name:     "SRV record",
 			record:   DNSRecord{Type: "SRV", Value: "sip.example.com", TTL: 3600, Priority: 10, Weight: 20, Port: 5060},
 			qname:    "_sip._tcp.example.com",
@@ -552,6 +560,7 @@ func TestHandleDNSRequestWithCSV(t *testing.T) {
 				{Name: "example.com", Type: "A", Value: "192.168.1.1", TTL: 3600},
 				{Name: "example.com", Type: "AAAA", Value: "2001:db8::1", TTL: 3600},
 				{Name: "example.com", Type: "TXT", Value: "This is a test", TTL: 3600},
+				{Name: "example.com", Type: "SOA", Value: "ns1.example.com. admin.example.com. 2025050801 3600 1800 604800 86400", TTL: 3600},
 			},
 			"www.example.com": {
 				{Name: "www.example.com", Type: "CNAME", Value: "example.com", TTL: 3600},
@@ -685,6 +694,58 @@ func TestHandleDNSRequestWithCSV(t *testing.T) {
 			}
 		})
 	}
+
+	// Test NXDOMAIN response with SOA record in authority section
+	t.Run("NXDOMAIN response with SOA", func(t *testing.T) {
+		// Create a mock DNS request for a non-existent domain
+		req := new(dns.Msg)
+		req.SetQuestion("nonexistent.example.com.", dns.TypeA)
+
+		// Create a mock ResponseWriter
+		w := &mockResponseWriter{}
+
+		// Process the request
+		handleDNSRequest(w, req)
+
+		// Check the response
+		if w.msg == nil {
+			t.Fatal("No response received")
+		}
+
+		// Check that there are no answers
+		if len(w.msg.Answer) != 0 {
+			t.Errorf("Expected 0 answers, got %d", len(w.msg.Answer))
+		}
+
+		// Check that the response code is NXDOMAIN
+		if w.msg.Rcode != dns.RcodeNameError {
+			t.Errorf("Expected response code %d (NXDOMAIN), got %d", dns.RcodeNameError, w.msg.Rcode)
+		}
+
+		// Check that there is an SOA record in the authority section
+		if len(w.msg.Ns) == 0 {
+			t.Errorf("Expected at least one record in authority section, got none")
+		} else {
+			soa, ok := w.msg.Ns[0].(*dns.SOA)
+			if !ok {
+				t.Errorf("Expected *dns.SOA in authority section, got %T", w.msg.Ns[0])
+			} else {
+				// Verify SOA record fields
+				if soa.Hdr.Name != "example.com." {
+					t.Errorf("Expected SOA name example.com., got %s", soa.Hdr.Name)
+				}
+				if soa.Ns != "ns1.example.com." {
+					t.Errorf("Expected SOA primary NS ns1.example.com., got %s", soa.Ns)
+				}
+				if soa.Mbox != "admin.example.com." {
+					t.Errorf("Expected SOA admin email admin.example.com., got %s", soa.Mbox)
+				}
+				if soa.Serial != 2025050801 {
+					t.Errorf("Expected SOA serial 2025050801, got %d", soa.Serial)
+				}
+			}
+		}
+	})
 }
 
 // Test IPv4 address parsing

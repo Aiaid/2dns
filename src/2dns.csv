@@ -1,0 +1,10 @@
+name,type,value,ttl,priority,weight,port
+2dns.dev,A,76.76.21.21,3600,,,
+www.2dns.dev,A,76.76.21.21,3600,,,
+ns1.2dns.dev,A,172.105.102.156,3600,,,
+ns2.2dns.dev,A,172.105.102.156,3600,,,
+2dns.dev,NS,ns1.2dns.dev,3600,,,
+2dns.dev,NS,ns2.2dns.dev,3600,,,
+*.2dns.dev,NS,ns1.2dns.dev,3600,,,
+*.2dns.dev,NS,ns2.2dns.dev,3600,,,
+2dns.dev,SOA,ns1.2dns.dev. admin.2dns.dev. 2025050801 3600 1800 604800 86400,3600,,,

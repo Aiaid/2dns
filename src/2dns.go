@@ -883,6 +883,71 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 				// No else clause - if no NS record is found, don't add anything to ADDITIONAL section
 			}
 		}
+	} else if len(msg.Answer) == 0 && recordStore != nil {
+		// No answers found - this is an NXDOMAIN or empty response
+		// Add SOA record to Authority section for proper negative caching
+		for _, q := range r.Question {
+			// Extract the domain from the query
+			qname := strings.TrimSuffix(q.Name, ".")
+			labels := strings.Split(qname, ".")
+
+			// Try to find the closest parent domain that has an SOA record
+			for i := 0; i < len(labels); i++ {
+				domain := strings.Join(labels[i:], ".")
+
+				if records, found := recordStore.Records[domain]; found {
+					// Look for an SOA record for this domain
+					for _, record := range records {
+						if record.Type == "SOA" {
+							// Parse the SOA record value
+							parts := strings.Fields(record.Value)
+							if len(parts) != 7 {
+								continue
+							}
+
+							serial, _ := strconv.ParseUint(parts[2], 10, 32)
+							refresh, _ := strconv.ParseUint(parts[3], 10, 32)
+							retry, _ := strconv.ParseUint(parts[4], 10, 32)
+							expire, _ := strconv.ParseUint(parts[5], 10, 32)
+							minimum, _ := strconv.ParseUint(parts[6], 10, 32)
+
+							// Create SOA record for the authority section
+							soaRecord := &dns.SOA{
+								Hdr: dns.RR_Header{
+									Name:   dns.Fqdn(domain),
+									Rrtype: dns.TypeSOA,
+									Class:  dns.ClassINET,
+									Ttl:    record.TTL,
+								},
+								Ns:      dns.Fqdn(parts[0]),
+								Mbox:    dns.Fqdn(parts[1]),
+								Serial:  uint32(serial),
+								Refresh: uint32(refresh),
+								Retry:   uint32(retry),
+								Expire:  uint32(expire),
+								Minttl:  uint32(minimum),
+							}
+
+							msg.Ns = append(msg.Ns, soaRecord)
+
+							// Set the response code to NXDOMAIN if the query was for a specific domain
+							// that doesn't exist (not a wildcard match)
+							if !strings.HasPrefix(qname, "*.") {
+								msg.Rcode = dns.RcodeNameError
+							}
+
+							// Once we've added an SOA record, we can break out of the loop
+							break
+						}
+					}
+
+					// If we found and added an SOA record, break out of the domain search loop
+					if len(msg.Ns) > 0 {
+						break
+					}
+				}
+			}
+		}
 	}
 
 	err := w.WriteMsg(msg)
