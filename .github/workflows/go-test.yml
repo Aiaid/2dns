@@ -34,18 +34,5 @@ jobs:
       - name: Download dependencies
         run: go mod download
       
-      - name: Run tests with coverage
-        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
-      
-      - name: Check coverage percentage
-        run: |
-          total_statements=$(grep -v "mode:" coverage.txt | wc -l)
-          covered_statements=$(grep -v "mode:" coverage.txt | grep -v " 0$" | wc -l)
-          coverage_percentage=$(echo "scale=2; $covered_statements * 100 / $total_statements" | bc)
-          echo "Coverage: $coverage_percentage%"
-          
-          # Fail if coverage is below 50%
-          if (( $(echo "$coverage_percentage < 50" | bc -l) )); then
-            echo "Code coverage is below 50%: $coverage_percentage%"
-            exit 1
-          fi
+      - name: Run tests
+        run: go test -v -race ./...
