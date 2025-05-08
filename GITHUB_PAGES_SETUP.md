@@ -69,6 +69,19 @@ If your site doesn't appear or has issues:
    - If links or assets are broken, ensure the `basePath` in `next.config.mjs` is set correctly
    - The environment variable `NEXT_PUBLIC_BASE_PATH` should be set to `/2dns` in the workflow
 
+4. **Permission issues**
+   
+   - If you see errors like "Permission denied to github-actions[bot]", ensure the workflow has proper permissions
+   - Check that the workflow file includes the following permissions section:
+     ```yaml
+     permissions:
+       contents: write
+       pages: write
+       id-token: write
+     ```
+   - You may also need to check repository settings under Settings → Actions → General → Workflow permissions
+     and ensure "Read and write permissions" is selected
+
 4. **Custom domain (optional)**
    
    If you want to use a custom domain:

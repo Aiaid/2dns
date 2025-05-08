@@ -69,6 +69,19 @@
    - 如果链接或资源损坏，确保 `next.config.mjs` 中的 `basePath` 设置正确
    - 工作流程中的环境变量 `NEXT_PUBLIC_BASE_PATH` 应设置为 `/2dns`
 
+4. **权限问题**
+   
+   - 如果您看到类似 "Permission denied to github-actions[bot]" 的错误，请确保工作流程具有适当的权限
+   - 检查工作流程文件是否包含以下权限部分：
+     ```yaml
+     permissions:
+       contents: write
+       pages: write
+       id-token: write
+     ```
+   - 您可能还需要检查仓库设置中的 Settings → Actions → General → Workflow permissions，
+     并确保选择了 "Read and write permissions"
+
 4. **自定义域名（可选）**
    
    如果您想使用自定义域名：
