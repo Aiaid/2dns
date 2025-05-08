@@ -693,6 +693,9 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 	msg := new(dns.Msg)
 	msg.SetReply(r)
 
+	// Set the Authoritative Answer flag
+	msg.Authoritative = true
+
 	for _, q := range r.Question {
 		if config.VerboseLogging {
 			log.Printf("Processing DNS request: %s, Type: %d", q.Name, q.Qtype)
@@ -834,6 +837,50 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 				if config.VerboseLogging {
 					log.Printf("Adding AAAA record (dual-stack): %v", ip)
 				}
+			}
+		}
+	}
+
+	// Add AUTHORITY section (NS records) if we have answers and records for the domain
+	if len(msg.Answer) > 0 && recordStore != nil {
+		for _, q := range r.Question {
+			domain := strings.TrimSuffix(q.Name, ".")
+			// Check if we have records for this domain
+			if records, found := recordStore.Records[domain]; found && len(records) > 0 {
+				domainFqdn := dns.Fqdn(domain)
+				// Add NS record to Authority section
+				nsRecord := &dns.NS{
+					Hdr: dns.RR_Header{
+						Name:   domainFqdn,
+						Rrtype: dns.TypeNS,
+						Class:  dns.ClassINET,
+						Ttl:    config.TTL,
+					},
+					Ns: "ns1." + domainFqdn,
+				}
+				msg.Ns = append(msg.Ns, nsRecord)
+
+				// Check if we have records for the nameserver domain before adding A record
+				nsDomain := "ns1." + domain
+				if nsRecords, nsFound := recordStore.Records[nsDomain]; nsFound && len(nsRecords) > 0 {
+					// Use the actual A record from our records if available
+					for _, nsRecord := range nsRecords {
+						if nsRecord.Type == "A" {
+							aRecord := &dns.A{
+								Hdr: dns.RR_Header{
+									Name:   "ns1." + domainFqdn,
+									Rrtype: dns.TypeA,
+									Class:  dns.ClassINET,
+									Ttl:    config.TTL,
+								},
+								A: net.ParseIP(nsRecord.Value).To4(),
+							}
+							msg.Extra = append(msg.Extra, aRecord)
+							break
+						}
+					}
+				}
+				// No else clause - if no NS record is found, don't add anything to ADDITIONAL section
 			}
 		}
 	}
