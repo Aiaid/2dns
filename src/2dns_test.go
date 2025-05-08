@@ -264,6 +264,27 @@ func TestRecordStoreLookup(t *testing.T) {
 			wantType: dns.TypeA,
 		},
 		{
+			name:     "Case-insensitive match (uppercase query)",
+			qname:    "EXAMPLE.COM",
+			qtype:    dns.TypeA,
+			wantLen:  1,
+			wantType: dns.TypeA,
+		},
+		{
+			name:     "Case-insensitive match (mixed case query)",
+			qname:    "ExAmPlE.CoM",
+			qtype:    dns.TypeA,
+			wantLen:  1,
+			wantType: dns.TypeA,
+		},
+		{
+			name:     "Case-insensitive match for CNAME",
+			qname:    "WWW.EXAMPLE.COM",
+			qtype:    dns.TypeA,
+			wantLen:  1,
+			wantType: dns.TypeCNAME,
+		},
+		{
 			name:     "No match",
 			qname:    "nonexistent.com",
 			qtype:    dns.TypeA,
@@ -293,8 +314,8 @@ func TestLoadRecordsFromCSV(t *testing.T) {
 	// Create a temporary CSV file with test records
 	csvContent := `name,type,value,ttl,priority,weight,port
 example.com,A,192.168.1.1,3600,,,
-example.com,AAAA,2001:db8::1,3600,,,
-example.com,TXT,"This is a test record",3600,,,
+EXAMPLE.COM,AAAA,2001:db8::1,3600,,,
+ExAmPlE.CoM,TXT,"This is a test record",3600,,,
 www.example.com,CNAME,example.com,3600,,,
 example.com,MX,mail.example.com,3600,10,,
 _sip._tcp.example.com,SRV,sip.example.com,3600,10,20,5060
@@ -319,9 +340,16 @@ _sip._tcp.example.com,SRV,sip.example.com,3600,10,20,5060
 		t.Fatalf("Failed to load records from CSV: %v", err)
 	}
 
-	// Verify regular records
+	// Verify regular records - all should be stored as lowercase
 	if len(store.Records["example.com"]) != 4 {
 		t.Errorf("Expected 4 records for example.com, got %d", len(store.Records["example.com"]))
+	}
+
+	// Verify that records with different case in CSV are stored as lowercase
+	for name := range store.Records {
+		if name != strings.ToLower(name) {
+			t.Errorf("Record name '%s' is not stored in lowercase", name)
+		}
 	}
 
 	// Verify wildcard records
@@ -615,6 +643,27 @@ func TestHandleDNSRequestWithCSV(t *testing.T) {
 			qtype:     dns.TypeA,
 			wantType:  dns.TypeA,
 			wantValue: "192.168.1.2",
+		},
+		{
+			name:      "Case-insensitive match (uppercase query)",
+			qname:     "EXAMPLE.COM.",
+			qtype:     dns.TypeA,
+			wantType:  dns.TypeA,
+			wantValue: "192.168.1.1",
+		},
+		{
+			name:      "Case-insensitive match (mixed case query)",
+			qname:     "ExAmPlE.CoM.",
+			qtype:     dns.TypeA,
+			wantType:  dns.TypeA,
+			wantValue: "192.168.1.1",
+		},
+		{
+			name:      "Case-insensitive match for CNAME",
+			qname:     "WWW.EXAMPLE.COM.",
+			qtype:     dns.TypeCNAME,
+			wantType:  dns.TypeCNAME,
+			wantValue: "example.com.",
 		},
 		{
 			name:      "Fallback to reflection",

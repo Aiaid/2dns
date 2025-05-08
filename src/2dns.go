@@ -157,6 +157,9 @@ func loadRecordsFromCSV(filePath string) (*RecordStore, error) {
 			}
 		}
 
+		// Convert name to lowercase for case-insensitive matching
+		name = strings.ToLower(name)
+
 		// Create DNS record
 		dnsRecord := DNSRecord{
 			Name:     name,
@@ -186,7 +189,8 @@ func (store *RecordStore) lookupRecord(name string, qtype uint16) []dns.RR {
 	store.mu.RLock()
 	defer store.mu.RUnlock()
 
-	name = strings.TrimSuffix(name, ".")
+	// Convert name to lowercase and trim suffix
+	name = strings.ToLower(strings.TrimSuffix(name, "."))
 	var result []dns.RR
 
 	// First check exact match
@@ -379,8 +383,8 @@ var config Config
 const ipv6Groups = 8
 
 func parseReflectIPv4(qname string) (net.IP, bool) {
-	// Remove trailing dot
-	qname = strings.TrimSuffix(qname, ".")
+	// Remove trailing dot and convert to lowercase
+	qname = strings.ToLower(strings.TrimSuffix(qname, "."))
 
 	// Extract domain name prefix part
 	labels := strings.Split(qname, ".")
@@ -407,8 +411,8 @@ func parseReflectIPv4(qname string) (net.IP, bool) {
 //  2. Omitted leading zeros: 2001-db8-85a3-0-0-8a2e-370-7334.example.com
 //  3. Using 'z' to represent zero groups: 2001-db8-85a3-z-8a2e-370-7334.example.com (z represents one or more consecutive all-zero groups)
 func parseReflectIPv6(qname string) (net.IP, bool) {
-	// Remove trailing dot
-	qname = strings.TrimSuffix(qname, ".")
+	// Remove trailing dot and convert to lowercase
+	qname = strings.ToLower(strings.TrimSuffix(qname, "."))
 
 	// Extract domain name prefix part
 	labels := strings.Split(qname, ".")
@@ -607,8 +611,8 @@ func base32ToIPv6(b32Str string) (net.IP, bool) {
 // parseDualStackAddress parses a domain name containing both IPv4 and IPv6 addresses
 // Based on the Python implementation's handling of 40-character prefixes
 func parseDualStackAddress(qname string, qtype uint16) (net.IP, bool) {
-	// Remove trailing dot
-	qname = strings.TrimSuffix(qname, ".")
+	// Remove trailing dot and convert to lowercase
+	qname = strings.ToLower(strings.TrimSuffix(qname, "."))
 
 	// Extract domain name prefix part
 	labels := strings.Split(qname, ".")
@@ -703,6 +707,7 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 
 		// 1. First check if we have a matching record in the CSV store
 		if recordStore != nil {
+			// Convert query name to lowercase before lookup
 			records := recordStore.lookupRecord(q.Name, q.Qtype)
 			if len(records) > 0 {
 				msg.Answer = append(msg.Answer, records...)
@@ -736,8 +741,8 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 			}
 
 			// 2. Try Base32 encoded IPv4
-			// Extract domain name prefix part
-			qname := strings.TrimSuffix(q.Name, ".")
+			// Extract domain name prefix part and convert to lowercase
+			qname := strings.ToLower(strings.TrimSuffix(q.Name, "."))
 			labels := strings.Split(qname, ".")
 			if len(labels) >= 2 && len(labels[0]) == 8 {
 				ip, ok := base32ToIPv4(labels[0])
@@ -798,8 +803,8 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 			}
 
 			// 2. Try Base32 encoded IPv6
-			// Extract domain name prefix part
-			qname := strings.TrimSuffix(q.Name, ".")
+			// Extract domain name prefix part and convert to lowercase
+			qname := strings.ToLower(strings.TrimSuffix(q.Name, "."))
 			labels := strings.Split(qname, ".")
 			if len(labels) >= 2 && len(labels[0]) == 32 {
 				ip, ok := base32ToIPv6(labels[0])
@@ -887,8 +892,8 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 		// No answers found - this is an NXDOMAIN or empty response
 		// Add SOA record to Authority section for proper negative caching
 		for _, q := range r.Question {
-			// Extract the domain from the query
-			qname := strings.TrimSuffix(q.Name, ".")
+			// Extract the domain from the query and convert to lowercase
+			qname := strings.ToLower(strings.TrimSuffix(q.Name, "."))
 			labels := strings.Split(qname, ".")
 
 			// Try to find the closest parent domain that has an SOA record
