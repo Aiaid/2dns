@@ -356,79 +356,81 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col items-start">
-              <Tabs defaultValue="example1" className="w-full">
-                <TabsList className="grid w-full grid-cols-7 overflow-x-auto">
+                <Tabs defaultValue="example1" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-7 overflow-x-auto">
                   {dict.examples && dict.examples.items && dict.examples.items.map((example: any, index: number) => (
-                    <TabsTrigger key={index} value={`example${index + 1}`}>Example {index + 1}</TabsTrigger>
+                    <TabsTrigger key={index} value={`example${index + 1}`}>
+                      {index + 1}
+                    </TabsTrigger>
                   ))}
                 </TabsList>
                 {dict.examples && dict.examples.items && dict.examples.items.map((example: any, index: number) => (
-                  <TabsContent key={index} value={`example${index + 1}`} className="space-y-2">
-                    <div className="rounded-md bg-muted p-4">
-                      <div className="flex items-center gap-2">
-                        <Info className="h-4 w-4" />
-                        <p className="text-sm font-medium">{example.format}</p>
+                  <TabsContent key={index} value={`example${index + 1}`} className="space-y-4 pt-4">
+                    <div className="rounded-md bg-muted p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Info className="h-5 w-5" />
+                        <p className="text-base font-medium">{example.format}</p>
                       </div>
                       
-                      <div className="mt-2 space-y-4">
-                        <div className="space-y-2">
+                      <div className="mt-4 space-y-6">
+                        <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <p className="text-xs font-medium">dig</p>
+                            <p className="text-sm font-medium">dig</p>
                             <Button 
                               type="button" 
                               size="sm" 
                               variant="outline" 
-                              className="h-6 gap-1" 
+                              className="h-8 gap-1" 
                               onClick={() => copyExampleCommand(example.commands.dig, index * 10 + 1)}
                             >
                               {exampleCopied[`${index * 10 + 1}`] ? (
                                 <>
-                                  <Check className="h-3 w-3" />
+                                  <Check className="h-3.5 w-3.5" />
                                   <span>{dict.copiedMessage}</span>
                                 </>
                               ) : (
                                 <>
-                                  <Copy className="h-3 w-3" />
+                                  <Copy className="h-3.5 w-3.5" />
                                   <span>{dict.copyButton}</span>
                                 </>
                               )}
                             </Button>
                           </div>
-                          <pre className="overflow-x-auto rounded bg-black p-2 text-xs text-white">
+                          <pre className="overflow-x-auto rounded bg-black p-3 text-sm text-white">
                             <code>{example.commands.dig}</code>
                           </pre>
                         </div>
                         
-                        <div className="space-y-2">
+                        <div className="space-y-3 pt-2">
                           <div className="flex items-center justify-between">
-                            <p className="text-xs font-medium">host</p>
+                            <p className="text-sm font-medium">host</p>
                             <Button 
                               type="button" 
                               size="sm" 
                               variant="outline" 
-                              className="h-6 gap-1" 
+                              className="h-8 gap-1" 
                               onClick={() => copyExampleCommand(example.commands.host, index * 10 + 2)}
                             >
                               {exampleCopied[`${index * 10 + 2}`] ? (
                                 <>
-                                  <Check className="h-3 w-3" />
+                                  <Check className="h-3.5 w-3.5" />
                                   <span>{dict.copiedMessage}</span>
                                 </>
                               ) : (
                                 <>
-                                  <Copy className="h-3 w-3" />
+                                  <Copy className="h-3.5 w-3.5" />
                                   <span>{dict.copyButton}</span>
                                 </>
                               )}
                             </Button>
                           </div>
-                          <pre className="overflow-x-auto rounded bg-black p-2 text-xs text-white">
+                          <pre className="overflow-x-auto rounded bg-black p-3 text-sm text-white">
                             <code>{example.commands.host}</code>
                           </pre>
                         </div>
                       </div>
                       
-                      <p className="mt-4 text-xs text-muted-foreground">{example.response}</p>
+                      <p className="mt-6 text-sm text-muted-foreground">{example.response}</p>
                     </div>
                   </TabsContent>
                 ))}
