@@ -6,8 +6,8 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
   
-  // Handle root path redirects
-  if (pathname === '/' || pathname === basePath || pathname === `${basePath}/`) {
+  // Handle root path redirects - only handle exact matches to avoid double redirects
+  if (pathname === '/' || pathname === `/${basePath}` || pathname === `/${basePath}/`) {
     return NextResponse.redirect(new URL(`${basePath}/en`, request.url))
   }
 

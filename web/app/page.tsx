@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation"
 
 export default function Home() {
-  // Get the base path from environment variable or use empty string
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
-  
-  // Redirect to the language page with the correct base path
-  redirect(`${basePath}/en`)
+  // Redirect to the English version
+  // Note: We don't need to add basePath here as Next.js handles it automatically
+  // when using the redirect function from next/navigation
+  redirect('/en')
 }

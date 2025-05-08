@@ -1,5 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
+import { getImagePath } from "@/lib/utils"
 
 export default function Hero({ dict }: { dict: any }) {
   return (
@@ -29,7 +30,7 @@ export default function Hero({ dict }: { dict: any }) {
           </div>
           <div className="flex items-center justify-center">
             <Image
-              src="/image.png"
+              src={getImagePath("/image.png")}
               width={600}
               height={400}
               alt="2DNS Global Network"

@@ -3,6 +3,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Globe } from "lucide-react"
 import { ModeToggle } from "./mode-toggle"
+import { getImagePath } from "@/lib/utils"
 
 export default function Header({
   lang,
@@ -20,7 +21,7 @@ export default function Header({
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Image 
-            src="/2dns_logo_reflection.svg" 
+            src={getImagePath("/2dns_logo_reflection.svg")}
             alt="2DNS Logo" 
             width={48}
             height={48}
