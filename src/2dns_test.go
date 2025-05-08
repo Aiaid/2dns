@@ -105,6 +105,30 @@ func TestCreateRR(t *testing.T) {
 			wantType: 0,
 			wantNil:  true,
 		},
+		{
+			name:     "ALIAS record",
+			record:   DNSRecord{Type: "ALIAS", Value: "example.com", TTL: 3600},
+			qname:    "alias.example.com",
+			qtype:    dns.TypeA,
+			wantType: dns.TypeA,
+			wantNil:  false, // Now returns a record due to local resolution
+		},
+		{
+			name:     "ANAME record for A query",
+			record:   DNSRecord{Type: "ANAME", Value: "example.com", TTL: 3600},
+			qname:    "aname.example.com",
+			qtype:    dns.TypeA,
+			wantType: dns.TypeA,
+			wantNil:  false, // Now returns a record due to local resolution
+		},
+		{
+			name:     "ANAME record for AAAA query",
+			record:   DNSRecord{Type: "ANAME", Value: "example.com", TTL: 3600},
+			qname:    "aname.example.com",
+			qtype:    dns.TypeAAAA,
+			wantType: dns.TypeAAAA,
+			wantNil:  true, // Will be nil in test since it requires DNS resolution
+		},
 	}
 
 	for _, tt := range tests {

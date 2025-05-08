@@ -120,6 +120,8 @@ _sip._tcp.example.com,SRV,sip.example.com,3600,10,20,5060
 - **SRV**: Service records
 - **TXT**: Text records
 - **CAA**: Certification Authority Authorization records
+- **ALIAS**: Similar to CNAME but can be used at the zone apex (root domain). Resolves at the DNS server level.
+- **ANAME**: Similar to ALIAS but specifically for A/AAAA resolution. Automatically resolves to the target domain's A or AAAA records.
 
 #### Wildcard Records
 

@@ -1,0 +1,10 @@
+name,type,value,ttl,priority,weight,port
+example.com,A,192.168.1.1,3600,,,
+example.com,AAAA,2001:db8::1,3600,,,
+example.com,TXT,"This is a test record",3600,,,
+www.example.com,CNAME,example.com,3600,,,
+example.com,MX,mail.example.com,3600,10,,
+_sip._tcp.example.com,SRV,sip.example.com,3600,10,20,5060
+*.example.com,A,192.168.1.2,3600,,,
+alias.example.com,ALIAS,example.com,3600,,,
+aname.example.com,ANAME,example.com,3600,,,

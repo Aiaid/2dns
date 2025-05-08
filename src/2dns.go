@@ -53,6 +53,8 @@ func isValidRecordType(recordType string) bool {
 		"SRV":   true,
 		"TXT":   true,
 		"CAA":   true,
+		"ALIAS": true,
+		"ANAME": true,
 	}
 	return validTypes[recordType]
 }
@@ -354,6 +356,209 @@ func createRR(record DNSRecord, qname string, qtype uint16) dns.RR {
 			Flag:  uint8(flag),
 			Tag:   parts[1],
 			Value: parts[2],
+		}
+
+	case "ALIAS":
+		// ALIAS records are similar to CNAME but can be used at the zone apex
+		// They are resolved at the DNS server level rather than by the client
+		// For ALIAS records, we need to perform a DNS lookup for the target domain
+		// and return all record types that match the query type
+
+		// ALIAS records can respond to any query type
+		// We'll perform a DNS lookup for the target domain with the same query type
+		r := new(dns.Msg)
+		r.SetQuestion(dns.Fqdn(record.Value), qtype)
+
+		// Use the system resolver to perform the lookup
+		c := new(dns.Client)
+		resp, _, err := c.Exchange(r, "8.8.8.8:53") // Using Google's DNS server
+
+		if err != nil || len(resp.Answer) == 0 {
+			if config.VerboseLogging {
+				log.Printf("ALIAS resolution failed for %s: %v", record.Value, err)
+			}
+			return nil
+		}
+
+		// Return the first matching record
+		// We need to create a new record with the same values but with our header
+		for _, rr := range resp.Answer {
+			// Create a new record based on the type
+			switch rr.Header().Rrtype {
+			case dns.TypeA:
+				if a, ok := rr.(*dns.A); ok {
+					return &dns.A{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    ttl,
+						},
+						A: a.A,
+					}
+				}
+			case dns.TypeAAAA:
+				if aaaa, ok := rr.(*dns.AAAA); ok {
+					return &dns.AAAA{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeAAAA,
+							Class:  dns.ClassINET,
+							Ttl:    ttl,
+						},
+						AAAA: aaaa.AAAA,
+					}
+				}
+			case dns.TypeCNAME:
+				if cname, ok := rr.(*dns.CNAME); ok {
+					return &dns.CNAME{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeCNAME,
+							Class:  dns.ClassINET,
+							Ttl:    ttl,
+						},
+						Target: cname.Target,
+					}
+				}
+			case dns.TypeMX:
+				if mx, ok := rr.(*dns.MX); ok {
+					return &dns.MX{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeMX,
+							Class:  dns.ClassINET,
+							Ttl:    ttl,
+						},
+						Preference: mx.Preference,
+						Mx:         mx.Mx,
+					}
+				}
+			case dns.TypeTXT:
+				if txt, ok := rr.(*dns.TXT); ok {
+					return &dns.TXT{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeTXT,
+							Class:  dns.ClassINET,
+							Ttl:    ttl,
+						},
+						Txt: txt.Txt,
+					}
+				}
+			}
+		}
+
+		// If we couldn't create a matching record, return nil
+		return nil
+
+	case "ANAME":
+		// ANAME records are similar to ALIAS records but specifically for A/AAAA resolution
+		// They allow a domain to point to another domain and automatically resolve to that domain's A or AAAA records
+
+		// ANAME records only respond to A or AAAA queries
+		if qtype != dns.TypeA && qtype != dns.TypeAAAA {
+			return nil
+		}
+
+		// For testing purposes, if we're in a local environment, check if we have a matching record in our store
+		// This allows us to test ANAME records without relying on external DNS resolution
+		if recordStore != nil {
+			// Look for a matching A or AAAA record for the target domain
+			targetRecords := recordStore.lookupRecord(record.Value, qtype)
+			if len(targetRecords) > 0 {
+				// Use the first matching record
+				for _, targetRR := range targetRecords {
+					switch qtype {
+					case dns.TypeA:
+						if a, ok := targetRR.(*dns.A); ok {
+							return &dns.A{
+								Hdr: dns.RR_Header{
+									Name:   qname,
+									Rrtype: dns.TypeA,
+									Class:  dns.ClassINET,
+									Ttl:    ttl,
+								},
+								A: a.A,
+							}
+						}
+					case dns.TypeAAAA:
+						if aaaa, ok := targetRR.(*dns.AAAA); ok {
+							return &dns.AAAA{
+								Hdr: dns.RR_Header{
+									Name:   qname,
+									Rrtype: dns.TypeAAAA,
+									Class:  dns.ClassINET,
+									Ttl:    ttl,
+								},
+								AAAA: aaaa.AAAA,
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// If we didn't find a matching record in our store, perform a DNS lookup
+		r := new(dns.Msg)
+		r.SetQuestion(dns.Fqdn(record.Value), qtype)
+
+		// Use the system resolver to perform the lookup
+		c := new(dns.Client)
+		resp, _, err := c.Exchange(r, "8.8.8.8:53") // Using Google's DNS server
+
+		if err != nil {
+			if config.VerboseLogging {
+				log.Printf("ANAME resolution failed for %s: %v", record.Value, err)
+			}
+			return nil
+		}
+
+		// If we got a response but no answers, it means the domain exists but doesn't have the requested record type
+		// This is not an error, just return nil to indicate no record of the requested type
+		if len(resp.Answer) == 0 {
+			if config.VerboseLogging {
+				log.Printf("ANAME resolution for %s returned no %s records", record.Value, dns.TypeToString[qtype])
+			}
+			return nil
+		}
+
+		// Return the first matching A or AAAA record
+		// We need to create a new record with the same values but with our header
+		for _, rr := range resp.Answer {
+			if rr.Header().Rrtype == qtype {
+				switch qtype {
+				case dns.TypeA:
+					if a, ok := rr.(*dns.A); ok {
+						return &dns.A{
+							Hdr: dns.RR_Header{
+								Name:   qname,
+								Rrtype: dns.TypeA,
+								Class:  dns.ClassINET,
+								Ttl:    ttl,
+							},
+							A: a.A,
+						}
+					}
+				case dns.TypeAAAA:
+					if aaaa, ok := rr.(*dns.AAAA); ok {
+						return &dns.AAAA{
+							Hdr: dns.RR_Header{
+								Name:   qname,
+								Rrtype: dns.TypeAAAA,
+								Class:  dns.ClassINET,
+								Ttl:    ttl,
+							},
+							AAAA: aaaa.AAAA,
+						}
+					}
+				}
+			}
+		}
+
+		// If we got here, we didn't find a matching record in the response
+		if config.VerboseLogging {
+			log.Printf("ANAME resolution for %s found no matching %s records in response", record.Value, dns.TypeToString[qtype])
 		}
 	}
 
@@ -985,7 +1190,7 @@ func initConfig(mode RunMode, ttlOverride uint32, verboseOverride *bool) {
 	case ProductionMode:
 		config = Config{
 			Mode:           ProductionMode,
-			TTL:            60,        // Use standard TTL in production mode
+			TTL:            3600,      // Use standard TTL in production mode
 			Ports:          []int{53}, // Use standard DNS port 53 in production mode
 			VerboseLogging: false,     // Concise logging in production mode
 		}

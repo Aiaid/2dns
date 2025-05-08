@@ -120,6 +120,8 @@ _sip._tcp.example.com,SRV,sip.example.com,3600,10,20,5060
 - **SRV**: 服务记录
 - **TXT**: 文本记录
 - **CAA**: 证书颁发机构授权记录
+- **ALIAS**: 类似于 CNAME，但可以用于区域顶点（根域名）。在 DNS 服务器级别解析。
+- **ANAME**: 类似于 ALIAS，但专门用于 A/AAAA 解析。自动解析为目标域名的 A 或 AAAA 记录。
 
 #### 通配符记录
 
