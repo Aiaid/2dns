@@ -11,6 +11,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Add trailingSlash for better compatibility with GitHub Pages
+  trailingSlash: true,
+  // Ensure we're generating static HTML files for each route
+  generateStaticParams: true,
 }
 
 export default nextConfig

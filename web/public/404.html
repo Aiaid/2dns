@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>2DNS - Redirecting</title>
+  <script>
+    // Single Page Apps for GitHub Pages
+    // MIT License
+    // This script takes the current URL and converts the path and query
+    // string into just a query string, and then redirects the browser
+    // to the new URL with only a query string and hash fragment.
+    // This is necessary for Single Page Apps that use the HTML5 history API.
+    
+    // Parse the URL
+    var pathSegments = location.pathname.split('/');
+    var basePath = '/2dns'; // Update this to match your repo name
+    var isBasePathInUrl = pathSegments.length > 1 && ('/' + pathSegments[1]) === basePath;
+    
+    // If this is a direct hit on the 404.html page, redirect to the index page
+    if (location.pathname === '/404.html' || location.pathname === basePath + '/404.html') {
+      location.replace(basePath + '/');
+    } 
+    // If the URL already has the base path, just redirect to the SPA
+    else if (isBasePathInUrl) {
+      // No need to modify the URL, just redirect to index
+      location.replace(basePath + '/');
+    } 
+    // Otherwise, add the base path and redirect
+    else {
+      // Redirect to the base path + the current path
+      location.replace(basePath + location.pathname);
+    }
+  </script>
+</head>
+<body>
+  <h1>Redirecting...</h1>
+  <p>If you are not redirected automatically, <a href="/2dns/">click here</a>.</p>
+</body>
+</html>

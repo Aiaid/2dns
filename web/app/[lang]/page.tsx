@@ -2,9 +2,19 @@ import { getDictionary, type Locale } from "./dictionaries"
 import LandingPage from "@/components/landing-page"
 import { Suspense } from "react"
 
+// This function is crucial for static site generation
+// It tells Next.js which routes to pre-render at build time
 export async function generateStaticParams() {
-  return [{ lang: "en" }, { lang: "zh" }]
+  // Pre-render both language variants
+  return [
+    { lang: "en" },
+    { lang: "zh" }
+  ]
 }
+
+// Set this page to static rendering
+export const dynamic = "force-static"
+export const dynamicParams = false
 
 export default async function Home({
   params,
@@ -12,7 +22,7 @@ export default async function Home({
   params: { lang: string }
 }) {
   // Get the language from params
-  const { lang } = await params
+  const { lang } = params
   
   // Ensure we use a valid language
   const validLang = (lang === "zh" ? "zh" : "en") as Locale

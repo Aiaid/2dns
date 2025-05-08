@@ -1,27 +1,26 @@
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-// 定义我们支持的语言
-const locales = ["en", "zh"]
-const defaultLocale = "en"
-
+// This middleware ensures proper handling of the base path and language routes
 export function middleware(request: NextRequest) {
-  // 检查路径中是否已有支持的语言
   const { pathname } = request.nextUrl
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
+  
+  // Handle root path redirects
+  if (pathname === '/' || pathname === basePath || pathname === `${basePath}/`) {
+    return NextResponse.redirect(new URL(`${basePath}/en`, request.url))
+  }
 
-  // 检查路径是否已包含语言
-  const pathnameHasLocale = locales.some((locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`)
-
-  if (pathnameHasLocale) return
-
-  // 如果没有语言，进行重定向
-  request.nextUrl.pathname = `/${defaultLocale}${pathname}`
-  return NextResponse.redirect(request.nextUrl)
+  // Continue with the request
+  return NextResponse.next()
 }
 
+// Configure middleware to run on specific paths
 export const config = {
   matcher: [
-    // 跳过所有内部路径 (_next)
-    "/((?!_next|api|favicon.ico).*)",
+    // Skip all internal paths (_next, api, etc)
+    '/((?!_next/|_vercel|api/).*)',
+    // Optional: Add specific paths that need middleware
+    '/'
   ],
 }

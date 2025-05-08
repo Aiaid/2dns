@@ -7,29 +7,46 @@ import { getDictionary, type Locale } from "./dictionaries"
 
 const inter = Inter({ subsets: ["latin"] })
 
+// Set this layout to static rendering
+export const dynamic = "force-static"
+
+// Generate static params for the layout
+export async function generateStaticParams() {
+  return [
+    { lang: "en" },
+    { lang: "zh" }
+  ]
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: { lang: string }
 }): Promise<Metadata> {
-  const { lang } = await params
+  const { lang } = params
   const validLang = (lang === "zh" ? "zh" : "en") as Locale
   const dict = await getDictionary(validLang)
 
   return {
     title: dict.metadata.title,
     description: dict.metadata.description,
+    // Add base path to metadata for proper asset loading
+    metadataBase: new URL(
+      process.env.NEXT_PUBLIC_BASE_PATH 
+        ? `https://aiaid.github.io${process.env.NEXT_PUBLIC_BASE_PATH}`
+        : 'https://aiaid.github.io/2dns'
+    ),
   }
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
   params,
 }: {
   children: React.ReactNode
   params: { lang: string }
 }) {
-  const { lang } = await params
+  const { lang } = params
   return (
     <html lang={lang} suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
