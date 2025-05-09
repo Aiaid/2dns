@@ -9,6 +9,89 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Check, Copy, Terminal, Info, AlertCircle, Play, Loader2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
+// Base32 encoding utility functions
+function ipv4ToBytes(ip: string): Uint8Array {
+  const parts = ip.split('.');
+  const bytes = new Uint8Array(4);
+  for (let i = 0; i < 4; i++) {
+    bytes[i] = parseInt(parts[i], 10);
+  }
+  return bytes;
+}
+
+function ipv6ToBytes(ip: string): Uint8Array {
+  // Normalize IPv6 address (handle abbreviated forms)
+  const fullAddress = normalizeIPv6(ip);
+  const bytes = new Uint8Array(16);
+  
+  // Convert each 16-bit group to two bytes
+  const groups = fullAddress.split(':');
+  for (let i = 0; i < 8; i++) {
+    const value = parseInt(groups[i], 16);
+    bytes[i * 2] = (value >> 8) & 0xff;
+    bytes[i * 2 + 1] = value & 0xff;
+  }
+  
+  return bytes;
+}
+
+function normalizeIPv6(ip: string): string {
+  // Handle :: abbreviation
+  if (ip.includes('::')) {
+    const parts = ip.split('::');
+    const left = parts[0] ? parts[0].split(':') : [];
+    const right = parts[1] ? parts[1].split(':') : [];
+    const missing = 8 - left.length - right.length;
+    const middle = Array(missing).fill('0000');
+    
+    const combined = [...left, ...middle, ...right];
+    return combined.map(part => part.padStart(4, '0')).join(':');
+  }
+  
+  // Handle case without ::, just ensure each part is 4 digits
+  return ip.split(':').map(part => part.padStart(4, '0')).join(':');
+}
+
+function base32Encode(bytes: Uint8Array): string {
+  const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let result = '';
+  let bits = 0;
+  let value = 0;
+  
+  for (let i = 0; i < bytes.length; i++) {
+    value = (value << 8) | bytes[i];
+    bits += 8;
+    
+    while (bits >= 5) {
+      bits -= 5;
+      result += ALPHABET[(value >> bits) & 0x1f];
+    }
+  }
+  
+  // Handle remaining bits
+  if (bits > 0) {
+    result += ALPHABET[(value << (5 - bits)) & 0x1f];
+  }
+  
+  // Add padding
+  while (result.length % 8 !== 0) {
+    result += '=';
+  }
+  
+  // Replace padding character '=' with '8' to match Go implementation
+  return result.replace(/=/g, '8');
+}
+
+function ipv4ToBase32(ip: string): string {
+  const bytes = ipv4ToBytes(ip);
+  return base32Encode(bytes);
+}
+
+function ipv6ToBase32(ip: string): string {
+  const bytes = ipv6ToBytes(ip);
+  return base32Encode(bytes);
+}
+
 export default function InteractiveDemo({ dict }: { dict: any }) {
   const [ipv4Address, setIpv4Address] = useState("")
   const [ipv6Address, setIpv6Address] = useState("")
@@ -31,6 +114,10 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
   const [isLoadingDoh, setIsLoadingDoh] = useState(false)
   const [exampleDohResults, setExampleDohResults] = useState<{[key: string]: string}>({})
   const [exampleDohLoading, setExampleDohLoading] = useState<{[key: string]: boolean}>({})
+  const [dohUrl, setDohUrl] = useState("")
+  const [dohUrlCopied, setDohUrlCopied] = useState(false)
+  const [exampleDohUrls, setExampleDohUrls] = useState<{[key: string]: string}>({})
+  const [exampleDohUrlCopied, setExampleDohUrlCopied] = useState<{[key: string]: boolean}>({})
   
   // DOH providers configuration
   const dohProviders = {
@@ -122,15 +209,15 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
 
     // Check if we're in dual-stack mode
     if (dualStackMode && format === "dual-stack") {
-      // Use the correct Base32 encoding for dual-stack
-      const ipv4Placeholder = "AEBAGBA8" // Base32 encoded IPv4 (1.2.3.4)
-      const ipv6Placeholder = "EAAQ3OEFUMAAAAAARIXAG4DTGQ888888" // Base32 encoded IPv6 (2001:0db8:85a3:0000:0000:8a2e:0370:7334)
-      const combinedPlaceholder = `${ipv4Placeholder}${ipv6Placeholder}`
+      // Use real Base32 encoding for dual-stack
+      const ipv4Base32 = ipv4ToBase32(ipv4Address);
+      const ipv6Base32 = ipv6ToBase32(ipv6Address);
+      const combinedBase32 = `${ipv4Base32}${ipv6Base32}`;
       
       if (commandType === "dig") {
-        query = `dig @${domain} ${combinedPlaceholder}.${domain} A+AAAA`
+        query = `dig ${combinedBase32}.${domain} A+AAAA`
       } else {
-        query = `host -t A+AAAA ${combinedPlaceholder}.${domain} ${domain}`
+        query = `host -t A+AAAA ${combinedBase32}.${domain}`
       }
       response = `Returns ${ipv4Address} as an A record and ${ipv6Address} as an AAAA record`
     } else if (ipv4Address && isValidIpv4 && format.includes("ipv4") || (!ipv6Address && format === "direct-ipv4")) {
@@ -138,19 +225,19 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
       if (format === "direct-ipv4") {
         const queryDomain = fullDomain(ipv4Address)
         if (commandType === "dig") {
-          query = `dig @${domain} ${queryDomain} A`
+          query = `dig ${queryDomain} A`
         } else {
-          query = `host -t A ${queryDomain} ${domain}`
+          query = `host -t A ${queryDomain}`
         }
         response = `Returns ${ipv4Address} as an A record`
       } else if (format === "base32-ipv4") {
-        // For demo purposes, we'll use placeholder Base32 encoding
-        const placeholder = "AEBAGBA8"
-        const queryDomain = fullDomain(placeholder)
+        // Use real Base32 encoding for IPv4
+        const base32Encoded = ipv4ToBase32(ipv4Address);
+        const queryDomain = fullDomain(base32Encoded)
         if (commandType === "dig") {
-          query = `dig @${domain} ${queryDomain} A`
+          query = `dig ${queryDomain} A`
         } else {
-          query = `host -t A ${queryDomain} ${domain}`
+          query = `host -t A ${queryDomain}`
         }
         response = `Returns ${ipv4Address} as an A record`
       }
@@ -160,9 +247,9 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
         const formattedIPv6 = ipv6Address.replace(/:/g, "-")
         const queryDomain = fullDomain(formattedIPv6)
         if (commandType === "dig") {
-          query = `dig @${domain} ${queryDomain} AAAA`
+          query = `dig ${queryDomain} AAAA`
         } else {
-          query = `host -t AAAA ${queryDomain} ${domain}`
+          query = `host -t AAAA ${queryDomain}`
         }
         response = `Returns ${ipv6Address} as an AAAA record`
       } else if (format === "ipv6-omit") {
@@ -170,9 +257,9 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
         const formattedIPv6 = ipv6Address.replace(/:/g, "-").replace(/0000/g, "0")
         const queryDomain = fullDomain(formattedIPv6)
         if (commandType === "dig") {
-          query = `dig @${domain} ${queryDomain} AAAA`
+          query = `dig ${queryDomain} AAAA`
         } else {
-          query = `host -t AAAA ${queryDomain} ${domain}`
+          query = `host -t AAAA ${queryDomain}`
         }
         response = `Returns ${ipv6Address} as an AAAA record`
       } else if (format === "ipv6-z") {
@@ -180,19 +267,19 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
         const formattedIPv6 = ipv6Address.replace(/(:0000:0000:)/g, ":z:").replace(/:/g, "-")
         const queryDomain = fullDomain(formattedIPv6)
         if (commandType === "dig") {
-          query = `dig @${domain} ${queryDomain} AAAA`
+          query = `dig ${queryDomain} AAAA`
         } else {
-          query = `host -t AAAA ${queryDomain} ${domain}`
+          query = `host -t AAAA ${queryDomain}`
         }
         response = `Returns ${ipv6Address} as an AAAA record`
       } else if (format === "base32-ipv6") {
-        // Use the correct Base32 encoding for IPv6
-        const placeholder = "EAAQ3OEFUMAAAAAARIXAG4DTGQ888888" // Base32 encoded IPv6 (2001:0db8:85a3:0000:0000:8a2e:0370:7334)
-        const queryDomain = fullDomain(placeholder)
+        // Use real Base32 encoding for IPv6
+        const base32Encoded = ipv6ToBase32(ipv6Address);
+        const queryDomain = fullDomain(base32Encoded)
         if (commandType === "dig") {
-          query = `dig @${domain} ${queryDomain} AAAA`
+          query = `dig ${queryDomain} AAAA`
         } else {
-          query = `host -t AAAA ${queryDomain} ${domain}`
+          query = `host -t AAAA ${queryDomain}`
         }
         response = `Returns ${ipv6Address} as an AAAA record`
       }
@@ -235,53 +322,140 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
       const useFormat = customFormat || format
       const useDualStack = customIpv4 && customIpv6 && useFormat === "dual-stack"
       
-      // Determine the domain and query type based on the format
-      if (useDualStack || (dualStackMode && useFormat === "dual-stack")) {
-        // For dual-stack, we'll use the IPv4 query for simplicity
-        queryDomain = `AEBAGBA8.${domain}`
-        queryType = "A"
-      } else if (useIpv4 && (useFormat.includes("ipv4") || useFormat === "direct-ipv4")) {
-        if (useFormat === "direct-ipv4") {
-          queryDomain = `${useIpv4}.${domain}`
-        } else {
-          queryDomain = `AEBAGBA8.${domain}`
-        }
-        queryType = "A"
-      } else if (useIpv6) {
-        if (useFormat === "ipv6-complete") {
-          queryDomain = `${useIpv6.replace(/:/g, "-")}.${domain}`
-        } else if (useFormat === "ipv6-omit") {
-          queryDomain = `${useIpv6.replace(/:/g, "-").replace(/0000/g, "0")}.${domain}`
-        } else if (useFormat === "ipv6-z") {
-          queryDomain = `${useIpv6.replace(/(:0000:0000:)/g, ":z:").replace(/:/g, "-")}.${domain}`
-        } else {
-          queryDomain = `EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.${domain}`
-        }
-        queryType = "AAAA"
-      }
-      
       // Get the DOH endpoint
       let endpoint = ""
       const useProvider = exampleIndex >= 0 ? customProvider : dohProvider
       
       if (useProvider === "custom") {
-        endpoint = customDohEndpoint
+        if (exampleIndex >= 0) {
+          // For examples, use the example-specific custom endpoint
+          // @ts-ignore - We're using this object to store custom endpoints too
+          endpoint = exampleDohLoading[`custom-endpoint-${exampleIndex}`] as string || ""
+          
+          // If no custom endpoint is provided for the example, show an error
+          if (!endpoint) {
+            const errorMsg = "Error: Custom endpoint URL is required"
+            setExampleDohResults({...exampleDohResults, [`${exampleIndex}`]: errorMsg})
+            setExampleDohLoading({...exampleDohLoading, [`${exampleIndex}`]: false})
+            return
+          }
+        } else {
+          // For the main form, use the main custom endpoint
+          endpoint = customDohEndpoint
+        }
       } else {
         endpoint = dohProviders[useProvider as keyof typeof dohProviders].endpoint
       }
-      
-      // Build the URL
-      const url = new URL(endpoint)
-      url.searchParams.append("name", queryDomain)
-      url.searchParams.append("type", queryType)
       
       // Set headers
       const headers = {
         "Accept": "application/dns-json"
       }
       
+      // Special handling for dual-stack mode
+      if (useDualStack || (dualStackMode && useFormat === "dual-stack")) {
+        // For dual-stack, we need to make both A and AAAA queries and combine results
+        const ipv4Base32 = ipv4ToBase32(useIpv4);
+        const ipv6Base32 = ipv6ToBase32(useIpv6);
+        const queryDomain = `${ipv4Base32}${ipv6Base32}.${domain}`;
+        
+        // First query for A record
+        const urlA = new URL(endpoint)
+        urlA.searchParams.append("name", queryDomain)
+        urlA.searchParams.append("type", "A")
+        
+        // Second query for AAAA record
+        const urlAAAA = new URL(endpoint)
+        urlAAAA.searchParams.append("name", queryDomain)
+        urlAAAA.searchParams.append("type", "AAAA")
+        
+        // Execute both queries
+        const [responseA, responseAAAA] = await Promise.all([
+          fetch(urlA.toString(), { headers }),
+          fetch(urlAAAA.toString(), { headers })
+        ])
+        
+        // Check if both responses are successful
+        if (!responseA.ok || !responseAAAA.ok) {
+          const errorMsg = `Error: One or both queries failed. A: ${responseA.status}, AAAA: ${responseAAAA.status}`
+          if (exampleIndex === -1) {
+            setDohResult(errorMsg)
+          } else {
+            setExampleDohResults({...exampleDohResults, [`${exampleIndex}`]: errorMsg})
+          }
+          return
+        }
+        
+        const dataA = await responseA.json()
+        const dataAAAA = await responseAAAA.json()
+        
+        // Combine the results with more detailed structure
+        const combinedResult = {
+          Status: 0,
+          TC: false,
+          RD: true,
+          RA: true,
+          AD: false,
+          CD: false,
+          Question: [
+            ...dataA.Question || [],
+            ...dataAAAA.Question || []
+          ],
+          Answer: [
+            ...(dataA.Answer || []).map((answer: any) => ({ ...answer, type: "A" })),
+            ...(dataAAAA.Answer || []).map((answer: any) => ({ ...answer, type: "AAAA" }))
+          ],
+          IPv4: dataA.Answer && dataA.Answer.length > 0 ? dataA.Answer[0].data : null,
+          IPv6: dataAAAA.Answer && dataAAAA.Answer.length > 0 ? dataAAAA.Answer[0].data : null
+        }
+        
+        // Format and display the combined result
+        const result = JSON.stringify(combinedResult, null, 2)
+        
+        if (exampleIndex === -1) {
+          setDohResult(result)
+        } else {
+          setExampleDohResults({...exampleDohResults, [`${exampleIndex}`]: result})
+        }
+      } else {
+        // Handle non-dual-stack queries as before
+        if (useIpv4 && (useFormat.includes("ipv4") || useFormat === "direct-ipv4")) {
+          if (useFormat === "direct-ipv4") {
+            queryDomain = `${useIpv4}.${domain}`
+          } else if (useFormat === "base32-ipv4") {
+            queryDomain = `${ipv4ToBase32(useIpv4)}.${domain}`
+          } else {
+            queryDomain = `${useIpv4}.${domain}`
+          }
+          queryType = "A"
+        } else if (useIpv6) {
+          if (useFormat === "ipv6-complete") {
+            queryDomain = `${useIpv6.replace(/:/g, "-")}.${domain}`
+          } else if (useFormat === "ipv6-omit") {
+            queryDomain = `${useIpv6.replace(/:/g, "-").replace(/0000/g, "0")}.${domain}`
+          } else if (useFormat === "ipv6-z") {
+            queryDomain = `${useIpv6.replace(/(:0000:0000:)/g, ":z:").replace(/:/g, "-")}.${domain}`
+          } else if (useFormat === "base32-ipv6") {
+            queryDomain = `${ipv6ToBase32(useIpv6)}.${domain}`
+          }
+          queryType = "AAAA"
+        }
+        
+      // Build the URL
+      const url = new URL(endpoint)
+      url.searchParams.append("name", queryDomain)
+      url.searchParams.append("type", queryType)
+      
+      // Store the URL for display and copying
+      const urlString = url.toString()
+      if (exampleIndex === -1) {
+        setDohUrl(urlString)
+      } else {
+        setExampleDohUrls({...exampleDohUrls, [`${exampleIndex}`]: urlString})
+      }
+      
       // Execute the query
-      const response = await fetch(url.toString(), { headers })
+      const response = await fetch(urlString, { headers })
       const data = await response.json()
       
       // Format and display the result
@@ -291,6 +465,7 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
         setDohResult(result)
       } else {
         setExampleDohResults({...exampleDohResults, [`${exampleIndex}`]: result})
+      }
       }
     } catch (error) {
       const errorMsg = `Error: ${error instanceof Error ? error.message : String(error)}`
@@ -325,6 +500,23 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
     navigator.clipboard.writeText(dnsQuery).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    })
+  }
+  
+  // Copy DOH URL to clipboard
+  function copyDohUrl(url: string, isExample: boolean = false, exampleIndex: number = -1) {
+    if (!url) return
+    
+    navigator.clipboard.writeText(url).then(() => {
+      if (isExample) {
+        setExampleDohUrlCopied({...exampleDohUrlCopied, [`${exampleIndex}`]: true})
+        setTimeout(() => {
+          setExampleDohUrlCopied({...exampleDohUrlCopied, [`${exampleIndex}`]: false})
+        }, 2000)
+      } else {
+        setDohUrlCopied(true)
+        setTimeout(() => setDohUrlCopied(false), 2000)
+      }
     })
   }
 
@@ -519,8 +711,34 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                     )}
                   </Button>
                   
-                  {dohResult && (
+                  {dohUrl && (
                     <div className="rounded-md border p-4 bg-muted">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium">DOH URL</p>
+                          <Button type="button" size="sm" variant="outline" className="h-8 gap-1" onClick={() => copyDohUrl(dohUrl)}>
+                            {dohUrlCopied ? (
+                              <>
+                                <Check className="h-3.5 w-3.5" />
+                                <span>{dict.copiedMessage}</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-3.5 w-3.5" />
+                                <span>{dict.copyButton}</span>
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <pre className="overflow-x-auto rounded bg-black p-2 text-xs text-white">
+                          <code>{dohUrl}</code>
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {dohResult && (
+                    <div className="rounded-md border p-4 bg-muted mt-4">
                       <div className="space-y-2">
                         <p className="text-sm font-medium">{dict.doh.resultTitle}</p>
                         <pre className="overflow-x-auto rounded bg-black p-2 text-xs text-white">
@@ -628,58 +846,157 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                         <div className="space-y-3 pt-4 mt-4 border-t">
                           <div className="flex items-center justify-between">
                             <p className="text-sm font-medium">DNS over HTTPS</p>
-                            <Button 
-                              type="button" 
-                              size="sm" 
-                              variant="outline" 
-                              className="h-8 gap-1" 
-                              onClick={() => {
-                                // Determine IP and format based on example
-                                let ipv4 = "";
-                                let ipv6 = "";
-                                let format = "";
-                                
-                                if (example.format.includes("IPv4") || example.format.includes("直接IPv4")) {
-                                  ipv4 = "1.2.3.4";
-                                  format = "direct-ipv4";
-                                } else if (example.format.includes("IPv6")) {
-                                  ipv6 = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
-                                  if (example.format.includes("完整") || example.format.includes("Complete")) {
-                                    format = "ipv6-complete";
-                                  } else if (example.format.includes("省略") || example.format.includes("Omit")) {
-                                    format = "ipv6-omit";
-                                  } else if (example.format.includes("'z'")) {
-                                    format = "ipv6-z";
-                                  } else if (example.format.includes("Base32")) {
-                                    format = "base32-ipv6";
-                                  }
-                                } else if (example.format.includes("双栈") || example.format.includes("Dual-Stack")) {
-                                  ipv4 = "1.2.3.4";
-                                  ipv6 = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
-                                  format = "dual-stack";
+                            <div className="flex items-center gap-2">
+                              {/* Add endpoint selection dropdown */}
+                              <Select 
+                                defaultValue="cloudflare" 
+                                onValueChange={(value) => {
+                                  // Store the selected provider in a separate state object
+                                  const updatedState = {...exampleDohLoading};
+                                  // @ts-ignore - We're using this object to store provider selections too
+                                  updatedState[`provider-${index}`] = value;
+                                  setExampleDohLoading(updatedState);
+                                }}
+                              >
+                                <SelectTrigger className="h-8 w-[130px]">
+                                  <SelectValue placeholder={dict.doh.endpointLabel} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {dict.doh.providers.map((provider: any, providerIndex: number) => (
+                                    <SelectItem key={providerIndex} value={provider.id}>{provider.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              
+                              <Button 
+                                type="button" 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-8 gap-1" 
+                                onClick={() => {
+                                  // Define example configurations based on index
+                                  const exampleConfigs = [
+                                    { ipv4: "1.2.3.4", ipv6: "", format: "direct-ipv4" },                 // 示例1：直接IPv4
+                                    { ipv4: "", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "ipv6-complete" }, // 示例2：IPv6完整格式
+                                    { ipv4: "", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "ipv6-omit" },     // 示例3：IPv6省略零格式
+                                    { ipv4: "", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "ipv6-z" },        // 示例4：IPv6使用'z'表示零组
+                                    { ipv4: "1.2.3.4", ipv6: "", format: "base32-ipv4" },                 // 示例5：Base32编码IPv4
+                                    { ipv4: "", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "base32-ipv6" },   // 示例6：Base32编码IPv6
+                                    { ipv4: "1.2.3.4", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "dual-stack" } // 示例7：双栈
+                                  ];
+
+                                  // Use example index to get configuration
+                                  const config = exampleConfigs[index];
+                                  
+                                  // Get the selected provider or default to cloudflare
+                                  // @ts-ignore - We're using this object to store provider selections too
+                                  const selectedProvider = exampleDohLoading[`provider-${index}`] as string || "cloudflare";
+                                  
+                                  // Execute the DoH query using the configuration and selected provider
+                                  executeDohQuery(config.ipv4, config.ipv6, config.format, selectedProvider, index);
+                                }}
+                                disabled={
+                                  exampleDohLoading[`${index}`] || 
+                                  // @ts-ignore - We're using this object to store provider selections too
+                                  (exampleDohLoading[`provider-${index}`] === "custom" && 
+                                   // @ts-ignore - We're using this object to store custom endpoints too
+                                   !exampleDohLoading[`custom-endpoint-${index}`])
                                 }
-                                
-                                // Execute the DoH query directly
-                                executeDohQuery(ipv4, ipv6, format, "cloudflare", index);
-                              }}
-                              disabled={exampleDohLoading[`${index}`]}
-                            >
-                              {exampleDohLoading[`${index}`] ? (
-                                <>
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
-                                  <span>{dict.doh.loadingMessage}</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Play className="h-3.5 w-3.5 mr-1" />
-                                  <span>{dict.doh.runButton}</span>
-                                </>
-                              )}
-                            </Button>
+                              >
+                                {exampleDohLoading[`${index}`] ? (
+                                  <>
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                                    <span>{dict.doh.loadingMessage}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Play className="h-3.5 w-3.5 mr-1" />
+                                    <span>{dict.doh.runButton}</span>
+                                  </>
+                                )}
+                              </Button>
+                            </div>
                           </div>
+                          {/* Show custom endpoint input when custom provider is selected */}
+                          {/* @ts-ignore - We're using this object to store provider selections too */}
+                          {exampleDohLoading[`provider-${index}`] === "custom" && (
+                            <div className="mt-2 mb-2">
+                              <Input
+                                type="text"
+                                placeholder={dict.doh.customEndpointPlaceholder}
+                                className="h-8 text-sm"
+                                onChange={(e) => {
+                                  const updatedState = {...exampleDohLoading};
+                                  // @ts-ignore - We're using this object to store custom endpoints too
+                                  updatedState[`custom-endpoint-${index}`] = e.target.value;
+                                  setExampleDohLoading(updatedState);
+                                }}
+                              />
+                            </div>
+                          )}
+                          
                           <div className="rounded bg-black p-3 text-sm text-white">
-                            <p>{example.commands.doh}</p>
+                            <p>
+                              {/* Dynamically show the provider name based on selection */}
+                              {(() => {
+                                // @ts-ignore - We're using this object to store provider selections too
+                                const selectedProvider = exampleDohLoading[`provider-${index}`] as string || "cloudflare";
+                                const providerName = selectedProvider === "custom" 
+                                  ? "Custom" 
+                                  : dohProviders[selectedProvider as keyof typeof dohProviders].name;
+                                
+                                const text = example.commands.doh;
+                                
+                                // Check if the text is in Chinese or English and apply appropriate replacement
+                                if (text.includes("使用")) {
+                                  // Chinese text pattern
+                                  return text.replace(
+                                    /使用(Cloudflare|Google|自定义) DOH查询/i,
+                                    `使用${providerName === "Custom" ? "自定义" : providerName} DOH查询`
+                                  );
+                                } else {
+                                  // English text pattern
+                                  return text.replace(
+                                    /Using (Cloudflare|Google|Custom) DOH to query/i, 
+                                    `Using ${providerName} DOH to query`
+                                  );
+                                }
+                              })()}
+                            </p>
                           </div>
+                          
+                          {/* Show DOH URL for examples */}
+                          {exampleDohUrls[`${index}`] && (
+                            <div className="mt-4 rounded-md border p-4 bg-muted">
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <p className="text-sm font-medium">DOH URL</p>
+                                  <Button 
+                                    type="button" 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="h-8 gap-1" 
+                                    onClick={() => copyDohUrl(exampleDohUrls[`${index}`], true, index)}
+                                  >
+                                    {exampleDohUrlCopied[`${index}`] ? (
+                                      <>
+                                        <Check className="h-3.5 w-3.5" />
+                                        <span>{dict.copiedMessage}</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Copy className="h-3.5 w-3.5" />
+                                        <span>{dict.copyButton}</span>
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                                <pre className="overflow-x-auto rounded bg-black p-2 text-xs text-white">
+                                  <code>{exampleDohUrls[`${index}`]}</code>
+                                </pre>
+                              </div>
+                            </div>
+                          )}
                           
                           {/* Show DoH results directly in the example */}
                           {exampleDohResults[`${index}`] && (

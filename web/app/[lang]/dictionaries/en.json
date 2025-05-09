@@ -91,7 +91,8 @@
         { "id": "cloudflare", "name": "Cloudflare" },
         { "id": "google", "name": "Google" },
         { "id": "custom", "name": "Custom" }
-      ]
+      ],
+      "endpointLabel": "Endpoint"
     },
     "formats": [
       { "id": "direct-ipv4", "name": "Direct IPv4 Reflection" },
@@ -123,8 +124,8 @@
         {
           "format": "Direct IPv4",
           "commands": {
-            "dig": "dig @2dns.dev 1.2.3.4.2dns.dev A",
-            "host": "host -t A 1.2.3.4.2dns.dev 2dns.dev",
+            "dig": "dig 1.2.3.4.2dns.dev A",
+            "host": "host -t A 1.2.3.4.2dns.dev",
             "doh": "Using Cloudflare DOH to query 1.2.3.4.2dns.dev"
           },
           "response": "Returns 1.2.3.4 as an A record"
@@ -132,8 +133,8 @@
         {
           "format": "IPv6 Complete",
           "commands": {
-            "dig": "dig @2dns.dev 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev AAAA",
-            "host": "host -t AAAA 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev 2dns.dev",
+            "dig": "dig 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev AAAA",
+            "host": "host -t AAAA 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev",
             "doh": "Using Cloudflare DOH to query 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev"
           },
           "response": "Returns 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
@@ -141,8 +142,8 @@
         {
           "format": "IPv6 with Omitted Zeros",
           "commands": {
-            "dig": "dig @2dns.dev 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev AAAA",
-            "host": "host -t AAAA 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev 2dns.dev",
+            "dig": "dig 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev AAAA",
+            "host": "host -t AAAA 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev",
             "doh": "Using Cloudflare DOH to query 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev"
           },
           "response": "Returns 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
@@ -150,8 +151,8 @@
         {
           "format": "IPv6 with 'z' for Zero Groups",
           "commands": {
-            "dig": "dig @2dns.dev 2001-db8-85a3-z-8a2e-370-7334.2dns.dev AAAA",
-            "host": "host -t AAAA 2001-db8-85a3-z-8a2e-370-7334.2dns.dev 2dns.dev",
+            "dig": "dig 2001-db8-85a3-z-8a2e-370-7334.2dns.dev AAAA",
+            "host": "host -t AAAA 2001-db8-85a3-z-8a2e-370-7334.2dns.dev",
             "doh": "Using Cloudflare DOH to query 2001-db8-85a3-z-8a2e-370-7334.2dns.dev"
           },
           "response": "Returns 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
@@ -159,8 +160,8 @@
         {
           "format": "Base32 Encoded IPv4",
           "commands": {
-            "dig": "dig @2dns.dev AEBAGBA8.2dns.dev A",
-            "host": "host -t A AEBAGBA8.2dns.dev 2dns.dev",
+            "dig": "dig AEBAGBA8.2dns.dev A",
+            "host": "host -t A AEBAGBA8.2dns.dev",
             "doh": "Using Cloudflare DOH to query AEBAGBA8.2dns.dev"
           },
           "response": "Returns 1.2.3.4 as an A record"
@@ -168,8 +169,8 @@
         {
           "format": "Base32 Encoded IPv6",
           "commands": {
-            "dig": "dig @2dns.dev EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev AAAA",
-            "host": "host -t AAAA EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev 2dns.dev",
+            "dig": "dig EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev AAAA",
+            "host": "host -t AAAA EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev",
             "doh": "Using Cloudflare DOH to query EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev"
           },
           "response": "Returns 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
@@ -177,8 +178,8 @@
         {
           "format": "Dual-Stack (IPv4 + IPv6)",
           "commands": {
-            "dig": "dig @2dns.dev AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev A+AAAA",
-            "host": "host -t A+AAAA AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev 2dns.dev",
+            "dig": "dig AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev A+AAAA",
+            "host": "host -t A+AAAA AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev",
             "doh": "Using Cloudflare DOH to query AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev"
           },
           "response": "Returns 1.2.3.4 as an A record and 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"

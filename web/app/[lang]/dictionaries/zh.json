@@ -91,7 +91,8 @@
         { "id": "cloudflare", "name": "Cloudflare" },
         { "id": "google", "name": "Google" },
         { "id": "custom", "name": "自定义" }
-      ]
+      ],
+      "endpointLabel": "端点"
     },
     "formats": [
       { "id": "direct-ipv4", "name": "直接IPv4反射" },
@@ -123,8 +124,8 @@
         {
           "format": "直接IPv4",
           "commands": {
-            "dig": "dig @2dns.dev 1.2.3.4.2dns.dev A",
-            "host": "host -t A 1.2.3.4.2dns.dev 2dns.dev",
+            "dig": "dig 1.2.3.4.2dns.dev A",
+            "host": "host -t A 1.2.3.4.2dns.dev",
             "doh": "使用Cloudflare DOH查询1.2.3.4.2dns.dev"
           },
           "response": "返回1.2.3.4作为A记录"
@@ -132,8 +133,8 @@
         {
           "format": "IPv6完整格式",
           "commands": {
-            "dig": "dig @2dns.dev 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev AAAA",
-            "host": "host -t AAAA 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev 2dns.dev",
+            "dig": "dig 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev AAAA",
+            "host": "host -t AAAA 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev",
             "doh": "使用Cloudflare DOH查询2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev"
           },
           "response": "返回2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
@@ -141,8 +142,8 @@
         {
           "format": "IPv6省略零格式",
           "commands": {
-            "dig": "dig @2dns.dev 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev AAAA",
-            "host": "host -t AAAA 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev 2dns.dev",
+            "dig": "dig 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev AAAA",
+            "host": "host -t AAAA 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev",
             "doh": "使用Cloudflare DOH查询2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev"
           },
           "response": "返回2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
@@ -150,8 +151,8 @@
         {
           "format": "IPv6使用'z'表示零组",
           "commands": {
-            "dig": "dig @2dns.dev 2001-db8-85a3-z-8a2e-370-7334.2dns.dev AAAA",
-            "host": "host -t AAAA 2001-db8-85a3-z-8a2e-370-7334.2dns.dev 2dns.dev",
+            "dig": "dig 2001-db8-85a3-z-8a2e-370-7334.2dns.dev AAAA",
+            "host": "host -t AAAA 2001-db8-85a3-z-8a2e-370-7334.2dns.dev",
             "doh": "使用Cloudflare DOH查询2001-db8-85a3-z-8a2e-370-7334.2dns.dev"
           },
           "response": "返回2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
@@ -159,8 +160,8 @@
         {
           "format": "Base32编码IPv4",
           "commands": {
-            "dig": "dig @2dns.dev AEBAGBA8.2dns.dev A",
-            "host": "host -t A AEBAGBA8.2dns.dev 2dns.dev",
+            "dig": "dig AEBAGBA8.2dns.dev A",
+            "host": "host -t A AEBAGBA8.2dns.dev",
             "doh": "使用Cloudflare DOH查询AEBAGBA8.2dns.dev"
           },
           "response": "返回1.2.3.4作为A记录"
@@ -168,8 +169,8 @@
         {
           "format": "Base32编码IPv6",
           "commands": {
-            "dig": "dig @2dns.dev EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev AAAA",
-            "host": "host -t AAAA EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev 2dns.dev",
+            "dig": "dig EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev AAAA",
+            "host": "host -t AAAA EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev",
             "doh": "使用Cloudflare DOH查询EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev"
           },
           "response": "返回2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
@@ -177,8 +178,8 @@
         {
           "format": "双栈(IPv4 + IPv6)",
           "commands": {
-            "dig": "dig @2dns.dev AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev A+AAAA",
-            "host": "host -t A+AAAA AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev 2dns.dev",
+            "dig": "dig AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev A+AAAA",
+            "host": "host -t A+AAAA AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev",
             "doh": "使用Cloudflare DOH查询AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev"
           },
           "response": "返回1.2.3.4作为A记录和2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
