@@ -76,8 +76,23 @@
     "commandTypeLabel": "命令类型",
     "commandTypes": [
       { "id": "dig", "name": "dig" },
-      { "id": "host", "name": "host" }
+      { "id": "host", "name": "host" },
+      { "id": "doh", "name": "DNS over HTTPS" }
     ],
+    "doh": {
+      "title": "DNS over HTTPS",
+      "providerLabel": "DOH 提供商",
+      "customEndpointLabel": "自定义端点",
+      "customEndpointPlaceholder": "输入自定义DOH端点URL",
+      "runButton": "运行查询",
+      "loadingMessage": "正在运行查询...",
+      "resultTitle": "DOH查询结果",
+      "providers": [
+        { "id": "cloudflare", "name": "Cloudflare" },
+        { "id": "google", "name": "Google" },
+        { "id": "custom", "name": "自定义" }
+      ]
+    },
     "formats": [
       { "id": "direct-ipv4", "name": "直接IPv4反射" },
       { "id": "ipv6-complete", "name": "IPv6完整格式" },
@@ -97,9 +112,9 @@
       "steps": [
         "输入IPv4或IPv6地址",
         "选择查询格式",
-        "选择命令类型（dig或host）",
-        "点击'生成DNS查询'",
-        "复制并在终端中运行命令"
+        "选择命令类型（dig、host或DNS over HTTPS）",
+        "对于dig/host：点击'生成DNS查询'并复制命令",
+        "对于DNS over HTTPS：选择提供商并点击'运行查询'直接查看结果"
       ]
     },
     "examples": {
@@ -109,7 +124,8 @@
           "format": "直接IPv4",
           "commands": {
             "dig": "dig @2dns.dev 1.2.3.4.2dns.dev A",
-            "host": "host -t A 1.2.3.4.2dns.dev 2dns.dev"
+            "host": "host -t A 1.2.3.4.2dns.dev 2dns.dev",
+            "doh": "使用Cloudflare DOH查询1.2.3.4.2dns.dev"
           },
           "response": "返回1.2.3.4作为A记录"
         },
@@ -117,7 +133,8 @@
           "format": "IPv6完整格式",
           "commands": {
             "dig": "dig @2dns.dev 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev AAAA",
-            "host": "host -t AAAA 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev 2dns.dev"
+            "host": "host -t AAAA 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev 2dns.dev",
+            "doh": "使用Cloudflare DOH查询2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev"
           },
           "response": "返回2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
         },
@@ -125,7 +142,8 @@
           "format": "IPv6省略零格式",
           "commands": {
             "dig": "dig @2dns.dev 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev AAAA",
-            "host": "host -t AAAA 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev 2dns.dev"
+            "host": "host -t AAAA 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev 2dns.dev",
+            "doh": "使用Cloudflare DOH查询2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev"
           },
           "response": "返回2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
         },
@@ -133,7 +151,8 @@
           "format": "IPv6使用'z'表示零组",
           "commands": {
             "dig": "dig @2dns.dev 2001-db8-85a3-z-8a2e-370-7334.2dns.dev AAAA",
-            "host": "host -t AAAA 2001-db8-85a3-z-8a2e-370-7334.2dns.dev 2dns.dev"
+            "host": "host -t AAAA 2001-db8-85a3-z-8a2e-370-7334.2dns.dev 2dns.dev",
+            "doh": "使用Cloudflare DOH查询2001-db8-85a3-z-8a2e-370-7334.2dns.dev"
           },
           "response": "返回2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
         },
@@ -141,23 +160,26 @@
           "format": "Base32编码IPv4",
           "commands": {
             "dig": "dig @2dns.dev AEBAGBA8.2dns.dev A",
-            "host": "host -t A AEBAGBA8.2dns.dev 2dns.dev"
+            "host": "host -t A AEBAGBA8.2dns.dev 2dns.dev",
+            "doh": "使用Cloudflare DOH查询AEBAGBA8.2dns.dev"
           },
           "response": "返回1.2.3.4作为A记录"
         },
         {
           "format": "Base32编码IPv6",
           "commands": {
-            "dig": "dig @2dns.dev ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev AAAA",
-            "host": "host -t AAAA ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev 2dns.dev"
+            "dig": "dig @2dns.dev EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev AAAA",
+            "host": "host -t AAAA EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev 2dns.dev",
+            "doh": "使用Cloudflare DOH查询EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev"
           },
           "response": "返回2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
         },
         {
           "format": "双栈(IPv4 + IPv6)",
           "commands": {
-            "dig": "dig @2dns.dev AEBAGBA8ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev A+AAAA",
-            "host": "host -t A+AAAA AEBAGBA8ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev 2dns.dev"
+            "dig": "dig @2dns.dev AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev A+AAAA",
+            "host": "host -t A+AAAA AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev 2dns.dev",
+            "doh": "使用Cloudflare DOH查询AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev"
           },
           "response": "返回1.2.3.4作为A记录和2001:0db8:85a3:0000:0000:8a2e:0370:7334作为AAAA记录"
         }

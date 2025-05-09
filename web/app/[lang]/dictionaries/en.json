@@ -76,8 +76,23 @@
     "commandTypeLabel": "Command Type",
     "commandTypes": [
       { "id": "dig", "name": "dig" },
-      { "id": "host", "name": "host" }
+      { "id": "host", "name": "host" },
+      { "id": "doh", "name": "DNS over HTTPS" }
     ],
+    "doh": {
+      "title": "DNS over HTTPS",
+      "providerLabel": "DOH Provider",
+      "customEndpointLabel": "Custom Endpoint",
+      "customEndpointPlaceholder": "Enter custom DOH endpoint URL",
+      "runButton": "Run Query",
+      "loadingMessage": "Running query...",
+      "resultTitle": "DOH Query Result",
+      "providers": [
+        { "id": "cloudflare", "name": "Cloudflare" },
+        { "id": "google", "name": "Google" },
+        { "id": "custom", "name": "Custom" }
+      ]
+    },
     "formats": [
       { "id": "direct-ipv4", "name": "Direct IPv4 Reflection" },
       { "id": "ipv6-complete", "name": "IPv6 Complete Format" },
@@ -97,9 +112,9 @@
       "steps": [
         "Enter an IPv4 or IPv6 address",
         "Select a query format",
-        "Choose command type (dig or host)",
-        "Click 'Generate DNS Query'",
-        "Copy and run the command in your terminal"
+        "Choose command type (dig, host, or DNS over HTTPS)",
+        "For dig/host: Click 'Generate DNS Query' and copy the command",
+        "For DNS over HTTPS: Select a provider and click 'Run Query' to see results directly"
       ]
     },
     "examples": {
@@ -109,7 +124,8 @@
           "format": "Direct IPv4",
           "commands": {
             "dig": "dig @2dns.dev 1.2.3.4.2dns.dev A",
-            "host": "host -t A 1.2.3.4.2dns.dev 2dns.dev"
+            "host": "host -t A 1.2.3.4.2dns.dev 2dns.dev",
+            "doh": "Using Cloudflare DOH to query 1.2.3.4.2dns.dev"
           },
           "response": "Returns 1.2.3.4 as an A record"
         },
@@ -117,7 +133,8 @@
           "format": "IPv6 Complete",
           "commands": {
             "dig": "dig @2dns.dev 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev AAAA",
-            "host": "host -t AAAA 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev 2dns.dev"
+            "host": "host -t AAAA 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev 2dns.dev",
+            "doh": "Using Cloudflare DOH to query 2001-0db8-85a3-0000-0000-8a2e-0370-7334.2dns.dev"
           },
           "response": "Returns 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
         },
@@ -125,7 +142,8 @@
           "format": "IPv6 with Omitted Zeros",
           "commands": {
             "dig": "dig @2dns.dev 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev AAAA",
-            "host": "host -t AAAA 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev 2dns.dev"
+            "host": "host -t AAAA 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev 2dns.dev",
+            "doh": "Using Cloudflare DOH to query 2001-db8-85a3-0-0-8a2e-370-7334.2dns.dev"
           },
           "response": "Returns 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
         },
@@ -133,7 +151,8 @@
           "format": "IPv6 with 'z' for Zero Groups",
           "commands": {
             "dig": "dig @2dns.dev 2001-db8-85a3-z-8a2e-370-7334.2dns.dev AAAA",
-            "host": "host -t AAAA 2001-db8-85a3-z-8a2e-370-7334.2dns.dev 2dns.dev"
+            "host": "host -t AAAA 2001-db8-85a3-z-8a2e-370-7334.2dns.dev 2dns.dev",
+            "doh": "Using Cloudflare DOH to query 2001-db8-85a3-z-8a2e-370-7334.2dns.dev"
           },
           "response": "Returns 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
         },
@@ -141,23 +160,26 @@
           "format": "Base32 Encoded IPv4",
           "commands": {
             "dig": "dig @2dns.dev AEBAGBA8.2dns.dev A",
-            "host": "host -t A AEBAGBA8.2dns.dev 2dns.dev"
+            "host": "host -t A AEBAGBA8.2dns.dev 2dns.dev",
+            "doh": "Using Cloudflare DOH to query AEBAGBA8.2dns.dev"
           },
           "response": "Returns 1.2.3.4 as an A record"
         },
         {
           "format": "Base32 Encoded IPv6",
           "commands": {
-            "dig": "dig @2dns.dev ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev AAAA",
-            "host": "host -t AAAA ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev 2dns.dev"
+            "dig": "dig @2dns.dev EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev AAAA",
+            "host": "host -t AAAA EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev 2dns.dev",
+            "doh": "Using Cloudflare DOH to query EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev"
           },
           "response": "Returns 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
         },
         {
           "format": "Dual-Stack (IPv4 + IPv6)",
           "commands": {
-            "dig": "dig @2dns.dev AEBAGBA8ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev A+AAAA",
-            "host": "host -t A+AAAA AEBAGBA8ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev 2dns.dev"
+            "dig": "dig @2dns.dev AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev A+AAAA",
+            "host": "host -t A+AAAA AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev 2dns.dev",
+            "doh": "Using Cloudflare DOH to query AEBAGBA8EAAQ3OEFUMAAAAAARIXAG4DTGQ888888.2dns.dev"
           },
           "response": "Returns 1.2.3.4 as an A record and 2001:0db8:85a3:0000:0000:8a2e:0370:7334 as an AAAA record"
         }
