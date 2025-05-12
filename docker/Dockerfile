@@ -34,7 +34,7 @@ COPY --from=builder /app/2dns .
 ENV PORT=53 \
     MODE=production \
     CSV_PATH="" \
-    TTL=60 \
+    TTL=3600 \
     VERBOSE=false
 
 # Expose DNS ports (default, can be overridden)
