@@ -1,8 +1,20 @@
-import { redirect } from "next/navigation"
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
-  // Redirect to the English version
-  // Note: We don't need to add basePath here as Next.js handles it automatically
-  // when using the redirect function from next/navigation
-  redirect('/en')
+  const router = useRouter()
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
+  
+  useEffect(() => {
+    // Client-side redirect to the English version
+    router.push(`${basePath}/en`)
+  }, [router, basePath])
+  
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <p>Redirecting to English version...</p>
+    </div>
+  )
 }

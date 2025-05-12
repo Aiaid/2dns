@@ -2,7 +2,7 @@
 
 2DNS is a versatile DNS reflection server that allows you to encode IP addresses in domain names and have them reflected back in DNS responses. This can be useful for various networking applications, diagnostics, and DNS-based service discovery.
 
-**Live Service:** [2dns.dev](https://2dns.dev)
+**Live Service:** 2dns.dev | [GitHub Pages (English)](https://aiaid.github.io/2dns/en/) | [GitHub Pages (Chinese)](https://aiaid.github.io/2dns/zh/)
 
 [中文](README.zh.md)
 

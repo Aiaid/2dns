@@ -13,8 +13,7 @@ const nextConfig = {
   },
   // Add trailingSlash for better compatibility with GitHub Pages
   trailingSlash: true,
-  // Ensure we're generating static HTML files for each route
-  generateStaticParams: true,
+  // Static generation is handled by the generateStaticParams functions in page and layout components
 }
 
 export default nextConfig
