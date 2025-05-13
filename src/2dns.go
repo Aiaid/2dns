@@ -1036,45 +1036,70 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 	}
 
 	// Add AUTHORITY section (NS records) if we have answers and records for the domain
+	// Skip adding NS records for CNAME queries or responses as requested
 	if len(msg.Answer) > 0 && recordStore != nil {
-		for _, q := range r.Question {
-			domain := strings.TrimSuffix(q.Name, ".")
-			// Check if we have records for this domain
-			if records, found := recordStore.Records[domain]; found && len(records) > 0 {
-				domainFqdn := dns.Fqdn(domain)
-				// Add NS record to Authority section
-				nsRecord := &dns.NS{
-					Hdr: dns.RR_Header{
-						Name:   domainFqdn,
-						Rrtype: dns.TypeNS,
-						Class:  dns.ClassINET,
-						Ttl:    config.TTL,
-					},
-					Ns: "ns1." + domainFqdn,
-				}
-				msg.Ns = append(msg.Ns, nsRecord)
+		// Check if this is a CNAME query or if the response contains a CNAME record
+		hasCNAME := false
 
-				// Check if we have records for the nameserver domain before adding A record
-				nsDomain := "ns1." + domain
-				if nsRecords, nsFound := recordStore.Records[nsDomain]; nsFound && len(nsRecords) > 0 {
-					// Use the actual A record from our records if available
-					for _, nsRecord := range nsRecords {
-						if nsRecord.Type == "A" {
-							aRecord := &dns.A{
-								Hdr: dns.RR_Header{
-									Name:   "ns1." + domainFqdn,
-									Rrtype: dns.TypeA,
-									Class:  dns.ClassINET,
-									Ttl:    config.TTL,
-								},
-								A: net.ParseIP(nsRecord.Value).To4(),
+		// Check if any of the answers is a CNAME record
+		for _, answer := range msg.Answer {
+			if answer.Header().Rrtype == dns.TypeCNAME {
+				hasCNAME = true
+				break
+			}
+		}
+
+		// Also check if this is a direct CNAME query
+		if !hasCNAME {
+			for _, q := range r.Question {
+				if q.Qtype == dns.TypeCNAME {
+					hasCNAME = true
+					break
+				}
+			}
+		}
+
+		// Only add NS records if this is not a CNAME query or response
+		if !hasCNAME {
+			for _, q := range r.Question {
+				domain := strings.TrimSuffix(q.Name, ".")
+				// Check if we have records for this domain
+				if records, found := recordStore.Records[domain]; found && len(records) > 0 {
+					domainFqdn := dns.Fqdn(domain)
+					// Add NS record to Authority section
+					nsRecord := &dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   domainFqdn,
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    config.TTL,
+						},
+						Ns: "ns1." + domainFqdn,
+					}
+					msg.Ns = append(msg.Ns, nsRecord)
+
+					// Check if we have records for the nameserver domain before adding A record
+					nsDomain := "ns1." + domain
+					if nsRecords, nsFound := recordStore.Records[nsDomain]; nsFound && len(nsRecords) > 0 {
+						// Use the actual A record from our records if available
+						for _, nsRecord := range nsRecords {
+							if nsRecord.Type == "A" {
+								aRecord := &dns.A{
+									Hdr: dns.RR_Header{
+										Name:   "ns1." + domainFqdn,
+										Rrtype: dns.TypeA,
+										Class:  dns.ClassINET,
+										Ttl:    config.TTL,
+									},
+									A: net.ParseIP(nsRecord.Value).To4(),
+								}
+								msg.Extra = append(msg.Extra, aRecord)
+								break
 							}
-							msg.Extra = append(msg.Extra, aRecord)
-							break
 						}
 					}
+					// No else clause - if no NS record is found, don't add anything to ADDITIONAL section
 				}
-				// No else clause - if no NS record is found, don't add anything to ADDITIONAL section
 			}
 		}
 	} else if len(msg.Answer) == 0 && recordStore != nil {

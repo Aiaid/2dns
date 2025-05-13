@@ -613,9 +613,13 @@ func TestHandleDNSRequestWithCSV(t *testing.T) {
 				{Name: "example.com", Type: "AAAA", Value: "2001:db8::1", TTL: 3600},
 				{Name: "example.com", Type: "TXT", Value: "This is a test", TTL: 3600},
 				{Name: "example.com", Type: "SOA", Value: "ns1.example.com. admin.example.com. 2025050801 3600 1800 604800 86400", TTL: 3600},
+				{Name: "example.com", Type: "NS", Value: "ns1.example.com", TTL: 3600},
 			},
 			"www.example.com": {
 				{Name: "www.example.com", Type: "CNAME", Value: "example.com", TTL: 3600},
+			},
+			"ns1.example.com": {
+				{Name: "ns1.example.com", Type: "A", Value: "192.168.1.10", TTL: 3600},
 			},
 		},
 		WildRecords: map[string][]DNSRecord{
@@ -816,6 +820,103 @@ func TestHandleDNSRequestWithCSV(t *testing.T) {
 				if soa.Serial != 2025050801 {
 					t.Errorf("Expected SOA serial 2025050801, got %d", soa.Serial)
 				}
+			}
+		}
+	})
+}
+
+// Test that NS records are not added to Authority section for CNAME queries
+func TestNoNSRecordsForCNAMEQueries(t *testing.T) {
+	// Save original recordStore
+	originalRecordStore := recordStore
+	defer func() { recordStore = originalRecordStore }()
+
+	// Create a test record store with NS records
+	recordStore = &RecordStore{
+		Records: map[string][]DNSRecord{
+			"example.com": {
+				{Name: "example.com", Type: "A", Value: "192.168.1.1", TTL: 3600},
+				{Name: "example.com", Type: "NS", Value: "ns1.example.com", TTL: 3600},
+			},
+			"www.example.com": {
+				{Name: "www.example.com", Type: "CNAME", Value: "example.com", TTL: 3600},
+			},
+			"ns1.example.com": {
+				{Name: "ns1.example.com", Type: "A", Value: "192.168.1.10", TTL: 3600},
+			},
+		},
+	}
+
+	// Test CNAME query - should not have NS records in Authority section
+	t.Run("CNAME query should not have NS records", func(t *testing.T) {
+		// Create a mock DNS request for CNAME
+		req := new(dns.Msg)
+		req.SetQuestion("www.example.com.", dns.TypeCNAME)
+
+		// Create a mock ResponseWriter
+		w := &mockResponseWriter{}
+
+		// Process the request
+		handleDNSRequest(w, req)
+
+		// Check the response
+		if w.msg == nil {
+			t.Fatal("No response received")
+		}
+
+		// Check that there is a CNAME record in the answer section
+		if len(w.msg.Answer) == 0 {
+			t.Errorf("Expected at least one answer, got none")
+		} else {
+			_, ok := w.msg.Answer[0].(*dns.CNAME)
+			if !ok {
+				t.Errorf("Expected CNAME record in answer, got %T", w.msg.Answer[0])
+			}
+		}
+
+		// Check that there are NO NS records in the authority section
+		if len(w.msg.Ns) > 0 {
+			t.Errorf("Expected no NS records in authority section for CNAME query, got %d", len(w.msg.Ns))
+			for i, rr := range w.msg.Ns {
+				t.Errorf("Authority record %d: %T %v", i, rr, rr)
+			}
+		}
+	})
+
+	// Test A query - should have NS records in Authority section
+	t.Run("A query should have NS records", func(t *testing.T) {
+		// Create a mock DNS request for A record
+		req := new(dns.Msg)
+		req.SetQuestion("example.com.", dns.TypeA)
+
+		// Create a mock ResponseWriter
+		w := &mockResponseWriter{}
+
+		// Process the request
+		handleDNSRequest(w, req)
+
+		// Check the response
+		if w.msg == nil {
+			t.Fatal("No response received")
+		}
+
+		// Check that there is an A record in the answer section
+		if len(w.msg.Answer) == 0 {
+			t.Errorf("Expected at least one answer, got none")
+		} else {
+			_, ok := w.msg.Answer[0].(*dns.A)
+			if !ok {
+				t.Errorf("Expected A record in answer, got %T", w.msg.Answer[0])
+			}
+		}
+
+		// Check that there ARE NS records in the authority section
+		if len(w.msg.Ns) == 0 {
+			t.Errorf("Expected NS records in authority section for A query, got none")
+		} else {
+			_, ok := w.msg.Ns[0].(*dns.NS)
+			if !ok {
+				t.Errorf("Expected NS record in authority section, got %T", w.msg.Ns[0])
 			}
 		}
 	})
