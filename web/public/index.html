@@ -7,17 +7,9 @@
     // This is a fallback index.html file that will redirect to the correct page
     // It's used when accessing the site directly via GitHub Pages
     
-    // Get the current origin (domain)
-    var origin = window.location.origin;
-    
-    // Check if we're on GitHub Pages
-    var isGitHubPages = origin.indexOf('github.io') > -1;
-    
-    // Construct the base path - this handles both GitHub Pages and custom domains
-    var basePath = isGitHubPages ? '/2dns' : '';
-    
-    // Redirect to the main application with the correct base path
-    window.location.replace(basePath + '/en/');
+    // Use a relative path for redirection to avoid path duplication issues
+    // This will redirect to the 'en' directory relative to the current location
+    window.location.replace('./en/');
   </script>
   <style>
     body {
