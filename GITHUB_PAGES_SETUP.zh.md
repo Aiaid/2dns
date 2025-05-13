@@ -88,13 +88,40 @@
    - 您可能还需要检查仓库设置中的 Settings → Actions → General → Workflow permissions，
      并确保选择了 "Read and write permissions"
 
-6. **检查 public 目录中的 HTML 文件**
+6. **了解重定向逻辑**
+
+   该项目使用多层方法在 GitHub Pages 上正确处理重定向：
+   
+   - **404.html**：`web/public` 目录中的此文件处理所有 404 错误并重定向到适当的页面。它：
+     - 检测网站是否在 GitHub Pages 上运行
+     - 正确处理基本路径（`/2dns`）
+     - 在需要时重定向到特定语言的页面
+     - 处理查询参数以保持原始请求的路径
+   
+   - **index.html**：`web/public` 目录中的此文件处理对网站根目录的直接访问。它：
+     - 使用带有正确基本路径的绝对 URL
+     - 保留搜索参数和哈希片段
+     - 默认重定向到英文版本
+   
+   - **page.tsx**：根页面组件处理 Next.js 应用程序内的客户端重定向：
+     - 使用 `window.location.replace` 进行可靠的重定向
+     - 正确处理来自环境变量的基本路径
+     - 保留搜索参数和哈希片段
+   
+   - **not-found.tsx**：Next.js 内的 404 组件：
+     - 检测 GitHub Pages 环境
+     - 将原始路径作为参数重定向到自定义 404.html
+     - 当 JavaScript 被禁用时提供备用 UI
+
+   如果您需要修改重定向逻辑，请确保在所有这些文件中保持一致性。
+
+7. **检查 public 目录中的 HTML 文件**
    
    - `web/public` 目录中的 `index.html` 和 `404.html` 文件对 GitHub Pages 很重要
    - 它们处理用户直接访问您的网站时的重定向和回退
    - 确保它们正确处理 GitHub Pages 的基本路径 (`/2dns`)
 
-7. **自定义域名（可选）**
+8. **自定义域名（可选）**
    
    如果您想使用自定义域名：
    

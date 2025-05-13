@@ -6,43 +6,88 @@
   <script>
     // Single Page Apps for GitHub Pages
     // MIT License
-    // This script takes the current URL and converts the path and query
-    // string into just a query string, and then redirects the browser
-    // to the new URL with only a query string and hash fragment.
-    // This is necessary for Single Page Apps that use the HTML5 history API.
+    // This script handles redirection for GitHub Pages with a base path
     
-    // Get the current origin (domain)
+    // Get the current URL information
     var origin = window.location.origin;
+    var pathname = window.location.pathname;
+    var search = window.location.search;
+    var hash = window.location.hash;
     
-    // Check if we're on GitHub Pages
+    // Determine if we're on GitHub Pages
     var isGitHubPages = origin.indexOf('github.io') > -1;
     
-    // Construct the base path - this handles both GitHub Pages and custom domains
+    // Set the base path based on the environment
     var basePath = isGitHubPages ? '/2dns' : '';
     
-    // Parse the URL
-    var pathSegments = location.pathname.split('/');
-    var isBasePathInUrl = false;
-    
-    // Check if the base path is already in the URL (only if we're on GitHub Pages)
-    if (isGitHubPages && pathSegments.length > 1) {
-      isBasePathInUrl = ('/' + pathSegments[1]) === basePath;
+    // Function to normalize path by removing duplicate slashes and ensuring proper format
+    function normalizePath(path) {
+      return path.replace(/\/+/g, '/');
     }
     
-    // If this is a direct hit on the 404.html page, redirect to the index page
-    if (location.pathname === '/404.html' || location.pathname === basePath + '/404.html') {
-      location.replace('./');
-    } 
-    // If the URL already has the base path, just redirect to the SPA
-    else if (isBasePathInUrl) {
-      // Use relative path to avoid path duplication
-      location.replace('./');
-    } 
-    // Otherwise, add the base path and redirect
-    else {
-      // Redirect to the base path + the current path
-      location.replace(basePath + location.pathname);
+    // Function to check if a path starts with a given prefix
+    function pathStartsWith(path, prefix) {
+      var normalizedPath = normalizePath('/' + path);
+      var normalizedPrefix = normalizePath('/' + prefix);
+      return normalizedPath.indexOf(normalizedPrefix) === 0;
     }
+    
+    // Function to get path segments as an array
+    function getPathSegments(path) {
+      return path.split('/').filter(function(segment) {
+        return segment.length > 0;
+      });
+    }
+    
+    // Get path segments
+    var segments = getPathSegments(pathname);
+    
+    // Parse query parameters
+    function getQueryParams() {
+      var params = {};
+      var query = window.location.search.substring(1);
+      var vars = query.split('&');
+      for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split('=');
+        params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+      }
+      return params;
+    }
+    
+    // Get query parameters
+    var queryParams = getQueryParams();
+    
+    // Handle direct access to 404.html
+    if (pathname === '/404.html' || pathname === basePath + '/404.html') {
+      // Check if we have a path parameter (from not-found.tsx)
+      if (queryParams.path) {
+        // Use the path from the query parameter
+        pathname = queryParams.path;
+      } else {
+        // No path parameter, redirect to home
+        window.location.replace(origin + basePath + '/');
+        // Stop execution
+        throw new Error('Redirecting to home page');
+      }
+    }
+    
+    // Check if we're already at the base path (for GitHub Pages)
+    var isAtBasePath = isGitHubPages && segments.length > 0 && segments[0] === '2dns';
+    
+    // Check if we're at a language path
+    var isAtLangPath = segments.length > 0 && 
+                       (segments[segments.length - 1] === 'en' || 
+                        segments[segments.length - 1] === 'zh');
+    
+    // If we're at the base path but not at a language path, redirect to English
+    if (isAtBasePath && !isAtLangPath) {
+      window.location.replace(origin + basePath + '/en/' + search + hash);
+    }
+    // If we're not at the base path, add it and redirect
+    else if (!isAtBasePath) {
+      window.location.replace(origin + basePath + pathname + search + hash);
+    }
+    // Otherwise, we're already at the correct path, so do nothing
   </script>
 </head>
 <body>

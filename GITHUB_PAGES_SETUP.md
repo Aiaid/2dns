@@ -88,13 +88,40 @@ If your site doesn't appear or has issues:
    - You may also need to check repository settings under Settings → Actions → General → Workflow permissions
      and ensure "Read and write permissions" is selected
 
-6. **Check HTML files in public directory**
+6. **Understanding the Redirection Logic**
+
+   The project uses a multi-layered approach to handle redirections properly on GitHub Pages:
+   
+   - **404.html**: This file in the `web/public` directory handles all 404 errors and redirects to the appropriate page. It:
+     - Detects if the site is running on GitHub Pages
+     - Handles the base path (`/2dns`) correctly
+     - Redirects to language-specific pages when needed
+     - Processes query parameters to maintain the original requested path
+   
+   - **index.html**: This file in the `web/public` directory handles direct access to the root of your site. It:
+     - Uses absolute URLs with the correct base path
+     - Preserves search parameters and hash fragments
+     - Redirects to the English version by default
+   
+   - **page.tsx**: The root page component handles client-side redirection within the Next.js app:
+     - Uses `window.location.replace` for reliable redirects
+     - Properly handles the base path from environment variables
+     - Preserves search parameters and hash fragments
+   
+   - **not-found.tsx**: The 404 component within Next.js:
+     - Detects GitHub Pages environment
+     - Redirects to the custom 404.html with the original path as a parameter
+     - Provides a fallback UI when JavaScript is disabled
+
+   If you need to modify the redirection logic, ensure you maintain consistency across all these files.
+
+7. **Check HTML files in public directory**
    
    - The `index.html` and `404.html` files in the `web/public` directory are important for GitHub Pages
    - They handle redirects and fallbacks when users access your site directly
    - Make sure they correctly handle the base path (`/2dns`) for GitHub Pages
 
-7. **Custom domain (optional)**
+8. **Custom domain (optional)**
    
    If you want to use a custom domain:
    

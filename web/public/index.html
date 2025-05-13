@@ -7,9 +7,23 @@
     // This is a fallback index.html file that will redirect to the correct page
     // It's used when accessing the site directly via GitHub Pages
     
-    // Use a relative path for redirection to avoid path duplication issues
-    // This will redirect to the 'en' directory relative to the current location
-    window.location.replace('./en/');
+    // Get the current URL information
+    var origin = window.location.origin;
+    var pathname = window.location.pathname;
+    var search = window.location.search;
+    var hash = window.location.hash;
+    
+    // Determine if we're on GitHub Pages
+    var isGitHubPages = origin.indexOf('github.io') > -1;
+    
+    // Set the base path based on the environment
+    var basePath = isGitHubPages ? '/2dns' : '';
+    
+    // Construct the full URL to the English version
+    var redirectUrl = origin + basePath + '/en/' + search + hash;
+    
+    // Redirect to the English version
+    window.location.replace(redirectUrl);
   </script>
   <style>
     body {
