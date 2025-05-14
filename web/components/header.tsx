@@ -35,6 +35,9 @@ export default function Header({
           <a href="#how-it-works" className="text-sm font-medium transition-colors hover:text-primary">
             {dictionary.navigation.howItWorks}
           </a>
+          <a href="#encoding-explained" className="text-sm font-medium transition-colors hover:text-primary">
+            {dictionary.navigation.encodingExplained}
+          </a>
           <a href="#demo" className="text-sm font-medium transition-colors hover:text-primary">
             {dictionary.navigation.try}
           </a>

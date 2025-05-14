@@ -1,6 +1,7 @@
 import Hero from "@/components/hero"
 import Features from "@/components/features"
 import HowItWorks from "@/components/how-it-works"
+import EncodingExplained from "@/components/encoding-explained"
 import InteractiveDemo from "@/components/interactive-demo"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
@@ -20,6 +21,7 @@ export default function LandingPage({
         <Hero dict={dictionary.hero} />
         <Features dict={dictionary.features} />
         <HowItWorks dict={dictionary.howItWorks} />
+        <EncodingExplained dict={dictionary.encodingExplained} />
         <InteractiveDemo dict={dictionary.demo} />
       </main>
       <Footer dict={dictionary.footer} brand={dictionary.common.brand} />
