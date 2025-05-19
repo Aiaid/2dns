@@ -1,5 +1,7 @@
 # NPM Cleanup Guide
 
+已于2025年5月将Node.js版本升级为22.19.0，pnpm升级为10.2.0，并同步更新了相关workflow和配置文件。
+
 This guide addresses the npm-related issues identified in the project and provides instructions for resolving them.
 
 ## Issues Identified

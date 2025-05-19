@@ -36,12 +36,12 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10.2.0
           run_install: false
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22.19.0"
           cache: 'pnpm'
           cache-dependency-path: './web/pnpm-lock.yaml'
       - name: Setup Pages

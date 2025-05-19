@@ -2,6 +2,8 @@
 
 # This script cleans up npm/pnpm issues and fixes security vulnerabilities
 
+# 2025年5月：已将Node.js版本升级为22.19.0，pnpm升级为10.2.0，并同步更新了相关workflow和配置文件。
+
 echo "🧹 Starting npm cleanup process..."
 
 # Step 1: Ensure correct Node.js version
