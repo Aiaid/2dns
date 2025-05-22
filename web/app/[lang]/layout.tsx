@@ -23,7 +23,7 @@ export async function generateMetadata({
 }: {
   params: { lang: string }
 }): Promise<Metadata> {
-  const { lang } = params
+  const { lang } = await Promise.resolve(params)
   const validLang = (lang === "zh" ? "zh" : "en") as Locale
   const dict = await getDictionary(validLang)
 
@@ -39,14 +39,14 @@ export async function generateMetadata({
   }
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
   params,
 }: {
   children: React.ReactNode
   params: { lang: string }
 }) {
-  const { lang } = params
+  const { lang } = await Promise.resolve(params)
   return (
     <html lang={lang} suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>

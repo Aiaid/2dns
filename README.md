@@ -275,3 +275,26 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## GitHub Actions and DockerHub Integration
 
 This project uses GitHub Actions for automated Docker image builds. For detailed setup instructions, see [GITHUB_SETUP.en.md](GITHUB_SETUP.en.md).
+
+## For Developers
+
+### Next.js Dynamic Route Parameters
+
+When working with dynamic route parameters in Next.js, make sure to properly await the params object before destructuring it. This is required by Next.js to ensure proper server-side rendering.
+
+Example:
+```typescript
+export default async function Page({ params }: { params: { lang: string } }) {
+  // Correctly await params before destructuring
+  const { lang } = await Promise.resolve(params)
+  
+  // Now you can safely use the lang parameter
+  // ...
+}
+```
+
+This pattern should be used in:
+- Route handlers
+- Layout components
+- Page components
+- Metadata generators
