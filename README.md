@@ -274,4 +274,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## GitHub Actions and DockerHub Integration
 
-This project uses GitHub Actions for automated Docker image builds. For detailed setup instructions, see [GITHUB_SETUP.en.md](GITHUB_SETUP.en.md).
+This project uses GitHub Actions for automated Docker image builds. For detailed setup instructions, see [GITHUB_SETUP.md](GITHUB_SETUP.md).

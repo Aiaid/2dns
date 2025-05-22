@@ -14,7 +14,7 @@ This guide will help you set up GitHub Pages to host the web frontend of your 2D
    Make sure you've pushed the workflow file and the updated Next.js configuration to your GitHub repository.
 
    ```bash
-   git add .github/workflows/deploy-github-pages.yml web/next.config.mjs GITHUB_PAGES_SETUP.md
+   git add .github/workflows/deploy-github-pages.yml web/next.config.mjs GITHUB_PAGES_SETUP.md GITHUB_PAGES_SETUP.zh.md
    git commit -m "Add GitHub Pages workflow and configuration"
    git push origin main
    ```
@@ -25,7 +25,7 @@ This guide will help you set up GitHub Pages to host the web frontend of your 2D
    
    - Go to your GitHub repository
    - Click on the "Actions" tab
-   - Select the "Deploy to GitHub Pages" workflow
+   - Select the "Deploy Next.js site to Pages" workflow
    - Click on "Run workflow" and select the branch (usually `main`)
 
 3. **Configure GitHub Pages in repository settings**
@@ -34,9 +34,8 @@ This guide will help you set up GitHub Pages to host the web frontend of your 2D
    - Click on "Settings"
    - Scroll down to the "Pages" section in the sidebar
    - Under "Build and deployment":
-     - Source: Select "Deploy from a branch"
-     - Branch: Select "gh-pages" and "/ (root)"
-     - Click "Save"
+     - Source: Select "GitHub Actions"
+     - This will automatically use the output of your GitHub Actions workflow
 
 4. **Wait for deployment**
    
@@ -65,17 +64,12 @@ If your site doesn't appear or has issues:
    - Go to the "Actions" tab to see if the workflow completed successfully
    - If there are errors, fix them and push again
 
-3. **Verify the gh-pages branch**
-   
-   - Check if the `gh-pages` branch was created
-   - Ensure it contains the built website files
-
-4. **Check base path configuration**
+3. **Check base path configuration**
    
    - If links or assets are broken, ensure the `basePath` in `next.config.mjs` is set correctly
    - The environment variable `NEXT_PUBLIC_BASE_PATH` should be set to `/2dns` in the workflow
 
-5. **Permission issues**
+4. **Permission issues**
    
    - If you see errors like "Permission denied to github-actions[bot]", ensure the workflow has proper permissions
    - Check that the workflow file includes the following permissions section:
@@ -87,6 +81,14 @@ If your site doesn't appear or has issues:
      ```
    - You may also need to check repository settings under Settings → Actions → General → Workflow permissions
      and ensure "Read and write permissions" is selected
+
+5. **Check dependencies and Node.js version**
+
+   The workflow uses:
+   - Node.js version 22
+   - pnpm version 10.2.0
+   
+   If you're encountering build issues, check that your application is compatible with these versions.
 
 6. **Understanding the Redirection Logic**
 
@@ -133,3 +135,4 @@ If your site doesn't appear or has issues:
 
 - The site will automatically rebuild and deploy when you push changes to the `web/` directory on the `main` branch
 - You can also manually trigger a rebuild from the "Actions" tab
+- The workflow includes a caching system for faster builds (for both dependencies and Next.js build cache)

@@ -267,4 +267,4 @@ MIT 许可证
 
 ## GitHub Actions 和 DockerHub 集成
 
-本项目使用 GitHub Actions 进行自动化 Docker 镜像构建。有关详细的设置说明，请参阅 [GITHUB_SETUP.md](GITHUB_SETUP.md)。
+本项目使用 GitHub Actions 进行自动化 Docker 镜像构建。有关详细的设置说明，请参阅 [GITHUB_SETUP.zh.md](GITHUB_SETUP.zh.md)。

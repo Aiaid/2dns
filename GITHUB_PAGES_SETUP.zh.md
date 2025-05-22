@@ -25,7 +25,7 @@
    
    - 转到您的 GitHub 仓库
    - 点击 "Actions" 选项卡
-   - 选择 "Deploy to GitHub Pages" 工作流程
+   - 选择 "Deploy Next.js site to Pages" 工作流程
    - 点击 "Run workflow" 并选择分支（通常是 `main`）
 
 3. **在仓库设置中配置 GitHub Pages**
@@ -34,9 +34,8 @@
    - 点击 "Settings"
    - 在侧边栏中向下滚动到 "Pages" 部分
    - 在 "Build and deployment" 下：
-     - Source：选择 "Deploy from a branch"
-     - Branch：选择 "gh-pages" 和 "/ (root)"
-     - 点击 "Save"
+     - Source：选择 "GitHub Actions"
+     - 这将自动使用 GitHub Actions 工作流程的输出
 
 4. **等待部署**
    
@@ -65,17 +64,12 @@
    - 转到 "Actions" 选项卡，查看工作流程是否成功完成
    - 如果有错误，修复它们并再次推送
 
-3. **验证 gh-pages 分支**
-   
-   - 检查是否创建了 `gh-pages` 分支
-   - 确保它包含构建的网站文件
-
-4. **检查基本路径配置**
+3. **检查基本路径配置**
    
    - 如果链接或资源损坏，确保 `next.config.mjs` 中的 `basePath` 设置正确
    - 工作流程中的环境变量 `NEXT_PUBLIC_BASE_PATH` 应设置为 `/2dns`
 
-5. **权限问题**
+4. **权限问题**
    
    - 如果您看到类似 "Permission denied to github-actions[bot]" 的错误，请确保工作流程具有适当的权限
    - 检查工作流程文件是否包含以下权限部分：
@@ -87,6 +81,14 @@
      ```
    - 您可能还需要检查仓库设置中的 Settings → Actions → General → Workflow permissions，
      并确保选择了 "Read and write permissions"
+
+5. **检查依赖项和 Node.js 版本**
+
+   工作流程使用：
+   - Node.js 版本 22
+   - pnpm 版本 10.2.0
+   
+   如果您遇到构建问题，请检查您的应用程序是否与这些版本兼容。
 
 6. **了解重定向逻辑**
 
@@ -133,3 +135,4 @@
 
 - 当您向 `main` 分支上的 `web/` 目录推送更改时，网站将自动重建和部署
 - 您也可以从 "Actions" 选项卡手动触发重建
+- 工作流程包含缓存系统，可加快构建速度（对于依赖项和 Next.js 构建缓存）
