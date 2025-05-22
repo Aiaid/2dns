@@ -3,7 +3,6 @@ import { Code } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CodeHighlighter } from "@/components/ui/code-highlighter"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { MermaidChart } from "@/components/ui/mermaid-chart"
 
 const ipv4Diagram = `
 flowchart LR
@@ -57,9 +56,6 @@ export default function EncodingExplained({ dict }: { dict: any }) {
               <div className="bg-muted p-4 rounded-md mb-4">
                 <code className="text-sm">{dict.ipv4Example}</code>
               </div>
-              <ScrollArea className="max-h-[400px] overflow-auto mb-4">
-                <MermaidChart chart={ipv4Diagram} />
-              </ScrollArea>
             </div>
             
             {/* IPv6 Encoding */}
@@ -72,9 +68,6 @@ export default function EncodingExplained({ dict }: { dict: any }) {
               <div className="bg-muted p-4 rounded-md mb-4">
                 <code className="text-sm">{dict.ipv6Example}</code>
               </div>
-              <ScrollArea className="max-h-[400px] overflow-auto mb-4">
-                <MermaidChart chart={ipv6Diagram} />
-              </ScrollArea>
             </div>
             
             {/* Dual Stack Encoding */}
@@ -87,9 +80,6 @@ export default function EncodingExplained({ dict }: { dict: any }) {
               <div className="bg-muted p-4 rounded-md mb-4">
                 <code className="text-sm">{dict.dualStackExample}</code>
               </div>
-              <ScrollArea className="max-h-[400px] overflow-auto mb-4">
-                <MermaidChart chart={dualStackDiagram} />
-              </ScrollArea>
             </div>
           </div>
 

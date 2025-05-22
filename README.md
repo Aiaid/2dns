@@ -244,17 +244,6 @@ When processing a DNS query, the server:
 3. If that fails, attempts to parse it as a dual-stack address (containing both IPv4 and IPv6)
 4. Returns the appropriate DNS record (A for IPv4, AAAA for IPv6) if successful
 
-## Development Notes
-
-### React Hydration Error Fix
-
-If you encounter hydration errors in the web interface related to the code highlighting component, we've added a fix using `suppressHydrationWarning` attribute on the `<pre>` element. This prevents React hydration errors that can occur due to:
-
-- Client-side DOM manipulation by Prism.js after server rendering
-- Differences in class order or additional attributes added by the syntax highlighter
-
-This specific fix addresses the mismatch between server-rendered HTML and client-side DOM modifications made by the syntax highlighting library.
-
 ## License
 
 MIT License
