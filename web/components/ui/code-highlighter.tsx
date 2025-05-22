@@ -23,7 +23,7 @@ export function CodeHighlighter({ code, language }: Props) {
   }, [code, language])
 
   return (
-    <pre className={`language-${language} overflow-x-auto p-4 rounded bg-gray-900`}>
+    <pre className={`language-${language} overflow-x-auto p-4 rounded bg-gray-900`} suppressHydrationWarning>
       <code ref={ref} className={`language-${language}`}>
         {code}
       </code>

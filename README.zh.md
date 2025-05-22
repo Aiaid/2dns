@@ -244,6 +244,17 @@ dig @2dns.dev AEBAGBA8ABQWY3DPEHBQGAYDAMZRGEZDGN3BGIZTINJWG44DS.2dns.dev AAAA
 3. 如果失败，尝试将其解析为双栈地址（同时包含 IPv4 和 IPv6）
 4. 如果成功，返回适当的 DNS 记录（IPv4 为 A 记录，IPv6 为 AAAA 记录）
 
+## 开发笔记
+
+### React 水合错误修复
+
+如果您在Web界面中遇到与代码高亮组件相关的水合错误，我们已经通过在`<pre>`元素上添加`suppressHydrationWarning`属性来修复这个问题。这可以防止由于以下原因导致的React水合错误：
+
+- Prism.js在服务器渲染后对客户端DOM进行操作
+- 语法高亮库添加的类名顺序不同或附加属性
+
+此特定修复解决了服务器渲染的HTML与语法高亮库进行的客户端DOM修改之间的不匹配问题。
+
 ## 许可证
 
 MIT 许可证
@@ -268,26 +279,3 @@ MIT 许可证
 ## GitHub Actions 和 DockerHub 集成
 
 本项目使用 GitHub Actions 进行自动化 Docker 镜像构建。有关详细的设置说明，请参阅 [GITHUB_SETUP.md](GITHUB_SETUP.md)。
-
-## 开发者信息
-
-### Next.js 动态路由参数
-
-在使用Next.js的动态路由参数时，确保在解构参数前正确地等待params对象。这是Next.js所要求的，以确保正确的服务器端渲染。
-
-示例:
-```typescript
-export default async function Page({ params }: { params: { lang: string } }) {
-  // 在解构前正确地等待params
-  const { lang } = await Promise.resolve(params)
-  
-  // 现在可以安全地使用lang参数
-  // ...
-}
-```
-
-这种模式应该用于:
-- 路由处理器
-- 布局组件
-- 页面组件
-- 元数据生成器

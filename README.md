@@ -244,6 +244,17 @@ When processing a DNS query, the server:
 3. If that fails, attempts to parse it as a dual-stack address (containing both IPv4 and IPv6)
 4. Returns the appropriate DNS record (A for IPv4, AAAA for IPv6) if successful
 
+## Development Notes
+
+### React Hydration Error Fix
+
+If you encounter hydration errors in the web interface related to the code highlighting component, we've added a fix using `suppressHydrationWarning` attribute on the `<pre>` element. This prevents React hydration errors that can occur due to:
+
+- Client-side DOM manipulation by Prism.js after server rendering
+- Differences in class order or additional attributes added by the syntax highlighter
+
+This specific fix addresses the mismatch between server-rendered HTML and client-side DOM modifications made by the syntax highlighting library.
+
 ## License
 
 MIT License
@@ -275,26 +286,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## GitHub Actions and DockerHub Integration
 
 This project uses GitHub Actions for automated Docker image builds. For detailed setup instructions, see [GITHUB_SETUP.en.md](GITHUB_SETUP.en.md).
-
-## For Developers
-
-### Next.js Dynamic Route Parameters
-
-When working with dynamic route parameters in Next.js, make sure to properly await the params object before destructuring it. This is required by Next.js to ensure proper server-side rendering.
-
-Example:
-```typescript
-export default async function Page({ params }: { params: { lang: string } }) {
-  // Correctly await params before destructuring
-  const { lang } = await Promise.resolve(params)
-  
-  // Now you can safely use the lang parameter
-  // ...
-}
-```
-
-This pattern should be used in:
-- Route handlers
-- Layout components
-- Page components
-- Metadata generators
