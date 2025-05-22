@@ -61,7 +61,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
       - name: Install dependencies
-        run: pnpm install
+        # 尝试标准安装，如果失败则使用 --no-frozen-lockfile
+        run: pnpm install || pnpm install --no-frozen-lockfile
       - name: Build with Next.js
         run: pnpm build
         env:

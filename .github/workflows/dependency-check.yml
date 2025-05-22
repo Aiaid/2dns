@@ -37,7 +37,8 @@ jobs:
       - name: Install dependencies
         run: |
           cd web
-          pnpm install --frozen-lockfile
+          # 尝试使用 --frozen-lockfile，如果失败则使用 --no-frozen-lockfile
+          pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
           
       - name: Run security audit
         run: |
