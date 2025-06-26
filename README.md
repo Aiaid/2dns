@@ -4,7 +4,7 @@
 
 **Live Service:** 2dns.dev | [GitHub Pages (English)](https://aiaid.github.io/2dns/en/) | [GitHub Pages (Chinese)](https://aiaid.github.io/2dns/zh/)
 
-[中文](README.zh.md)
+[中文](README.zh.md) | [Documentation](docs/README.md)
 
 ## Features
 

@@ -66,10 +66,44 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: 0 },
         },
+        "float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-20px)" },
+        },
+        "fadeIn": {
+          "from": { opacity: 0, transform: "translateY(30px)" },
+          "to": { opacity: 1, transform: "translateY(0)" },
+        },
+        "slideInLeft": {
+          "from": { opacity: 0, transform: "translateX(-50px)" },
+          "to": { opacity: 1, transform: "translateX(0)" },
+        },
+        "slideInRight": {
+          "from": { opacity: 0, transform: "translateX(50px)" },
+          "to": { opacity: 1, transform: "translateX(0)" },
+        },
+        "shimmer": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
+        },
+        "glow": {
+          "0%, 100%": { boxShadow: "0 0 20px rgba(102, 126, 234, 0.5)" },
+          "50%": { boxShadow: "0 0 40px rgba(102, 126, 234, 0.8)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "float": "float 6s ease-in-out infinite",
+        "fadeIn": "fadeIn 1s ease-in-out",
+        "slideInLeft": "slideInLeft 0.8s ease-out",
+        "slideInRight": "slideInRight 0.8s ease-out",
+        "shimmer": "shimmer 2s infinite",
+        "glow": "glow 2s ease-in-out infinite alternate",
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
     },
   },

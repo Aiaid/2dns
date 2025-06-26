@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Check, Copy, Terminal, Info, AlertCircle, Play, Loader2 } from "lucide-react"
+import { Check, Copy, Terminal, Info, AlertCircle, Play, Loader2, Zap, Globe, Network } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 // Base32 encoding utility functions
@@ -199,8 +199,28 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
     }
   }, [ipv4Address, ipv6Address, isValidIpv4, isValidIpv6])
 
+  // Clear results when command type changes
+  useEffect(() => {
+    if (commandType === "doh") {
+      // When switching to DOH, clear dig/host results
+      setDnsQuery("")
+      setExpectedResponse("")
+    } else {
+      // When switching from DOH to dig/host, clear DOH results
+      setDohResult("")
+      setDohUrl("")
+      setIsLoadingDoh(false)
+    }
+  }, [commandType])
+
   // Generate DNS query based on IP and format
   function generateDnsQuery() {
+    // If DOH is selected, execute the DOH query instead of generating command
+    if (commandType === "doh") {
+      executeDohQuery()
+      return
+    }
+
     let query = ""
     let response = ""
     const domain = "2dns.dev"
@@ -485,7 +505,37 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
 
   // Copy example command to clipboard
   function copyExampleCommand(command: string, index: number) {
+    if (!navigator.clipboard) {
+      // Fallback for browsers without clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = command;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      setExampleCopied({...exampleCopied, [`${index}`]: true})
+      setTimeout(() => {
+        setExampleCopied({...exampleCopied, [`${index}`]: false})
+      }, 2000)
+      return;
+    }
+
     navigator.clipboard.writeText(command).then(() => {
+      setExampleCopied({...exampleCopied, [`${index}`]: true})
+      setTimeout(() => {
+        setExampleCopied({...exampleCopied, [`${index}`]: false})
+      }, 2000)
+    }).catch((err) => {
+      console.error('Failed to copy text: ', err);
+      // Fallback method
+      const textArea = document.createElement('textarea');
+      textArea.value = command;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
       setExampleCopied({...exampleCopied, [`${index}`]: true})
       setTimeout(() => {
         setExampleCopied({...exampleCopied, [`${index}`]: false})
@@ -497,9 +547,35 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
   function copyToClipboard() {
     if (!dnsQuery) return
 
+    if (!navigator.clipboard) {
+      // Fallback for browsers without clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = dnsQuery;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      return;
+    }
+
     navigator.clipboard.writeText(dnsQuery).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    }).catch((err) => {
+      console.error('Failed to copy text: ', err);
+      // Fallback method
+      const textArea = document.createElement('textarea');
+      textArea.value = dnsQuery;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     })
   }
   
@@ -507,7 +583,47 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
   function copyDohUrl(url: string, isExample: boolean = false, exampleIndex: number = -1) {
     if (!url) return
     
+    if (!navigator.clipboard) {
+      // Fallback for browsers without clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (isExample) {
+        setExampleDohUrlCopied({...exampleDohUrlCopied, [`${exampleIndex}`]: true})
+        setTimeout(() => {
+          setExampleDohUrlCopied({...exampleDohUrlCopied, [`${exampleIndex}`]: false})
+        }, 2000)
+      } else {
+        setDohUrlCopied(true)
+        setTimeout(() => setDohUrlCopied(false), 2000)
+      }
+      return;
+    }
+    
     navigator.clipboard.writeText(url).then(() => {
+      if (isExample) {
+        setExampleDohUrlCopied({...exampleDohUrlCopied, [`${exampleIndex}`]: true})
+        setTimeout(() => {
+          setExampleDohUrlCopied({...exampleDohUrlCopied, [`${exampleIndex}`]: false})
+        }, 2000)
+      } else {
+        setDohUrlCopied(true)
+        setTimeout(() => setDohUrlCopied(false), 2000)
+      }
+    }).catch((err) => {
+      console.error('Failed to copy text: ', err);
+      // Fallback method
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
       if (isExample) {
         setExampleDohUrlCopied({...exampleDohUrlCopied, [`${exampleIndex}`]: true})
         setTimeout(() => {
@@ -521,69 +637,119 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
   }
 
   return (
-    <section id="demo" className="w-full py-12 md:py-24 lg:py-32 bg-background text-foreground">
-      <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center">
+    <section id="demo" className="w-full py-12 md:py-24 lg:py-32 relative overflow-hidden">
+      {/* 背景装饰 */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20" />
+      <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full opacity-10 filter blur-3xl animate-pulse" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full opacity-10 filter blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
+      
+      <div className="container px-4 md:px-6 relative z-10">
+        <div className="flex flex-col items-center justify-center space-y-4 text-center fade-in mb-12">
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">{dict.title}</h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl">{dict.subtitle}</p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-200/20 mb-4">
+              <Network className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+              <span className="text-sm font-medium text-cyan-600 dark:text-cyan-400">实时演示</span>
+            </div>
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-gradient bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 bg-clip-text">{dict.title}</h2>
+            <p className="max-w-[900px] text-muted-foreground md:text-xl opacity-80">{dict.subtitle}</p>
+            <p className="max-w-[700px] text-muted-foreground">{dict.description}</p>
           </div>
-          <p className="max-w-[600px] text-muted-foreground">{dict.description}</p>
         </div>
 
-        <div className="mx-auto mt-12 grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>{dict.ipLabel}</CardTitle>
-              <CardDescription>{dict.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">IPv4 {dict.ipLabel}</label>
+        <div className="mx-auto max-w-4xl space-y-8">
+          {/* 主要演示卡片 */}
+          <div className="slide-in-left">
+            <Card className="card-modern bg-white/10 dark:bg-gray-800/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
+                    <Terminal className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="text-gradient bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text">DNS 查询生成器</span>
+                </CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  输入IP地址并选择格式来生成DNS查询命令
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* IPv4地址输入 */}
+                <div className="space-y-2 slide-in-right" style={{ animationDelay: '0.2s' }}>
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+                      <span className="text-white text-xs">4</span>
+                    </div>
+                    IPv4 地址
+                  </label>
                   <Input
                     type="text"
-                    placeholder="192.168.1.1"
+                    placeholder={dict.ipPlaceholder || "Enter IPv4 address"}
                     value={ipv4Address}
                     onChange={(e) => setIpv4Address(e.target.value)}
-                    className={!isValidIpv4 && ipv4Address ? "border-red-500" : ""}
+                    className="input-modern bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/30 backdrop-blur-sm"
                   />
-                  
                   {!isValidIpv4 && ipv4Address && (
-                    <Alert variant="destructive">
+                    <Alert className="bg-red-50/80 dark:bg-red-900/20 border-red-200/50 dark:border-red-800/50">
                       <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Error</AlertTitle>
-                      <AlertDescription>{errorMessageIpv4}</AlertDescription>
+                      <AlertDescription className="text-red-600 dark:text-red-400">
+                        {errorMessageIpv4}
+                      </AlertDescription>
                     </Alert>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">IPv6 {dict.ipLabel}</label>
+                {/* IPv6地址输入 */}
+                <div className="space-y-2 slide-in-left" style={{ animationDelay: '0.4s' }}>
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                      <span className="text-white text-xs">6</span>
+                    </div>
+                    IPv6 地址
+                  </label>
                   <Input
                     type="text"
-                    placeholder="2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+                    placeholder="Enter IPv6 address"
                     value={ipv6Address}
                     onChange={(e) => setIpv6Address(e.target.value)}
-                    className={!isValidIpv6 && ipv6Address ? "border-red-500" : ""}
+                    className="input-modern bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/30 backdrop-blur-sm"
                   />
-                  
                   {!isValidIpv6 && ipv6Address && (
-                    <Alert variant="destructive">
+                    <Alert className="bg-red-50/80 dark:bg-red-900/20 border-red-200/50 dark:border-red-800/50">
                       <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Error</AlertTitle>
-                      <AlertDescription>{errorMessageIpv6}</AlertDescription>
+                      <AlertDescription className="text-red-600 dark:text-red-400">
+                        {errorMessageIpv6}
+                      </AlertDescription>
                     </Alert>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{dict.formatLabel}</label>
+                {/* 双栈模式切换 */}
+                <div className="flex items-center space-x-2 slide-in-right" style={{ animationDelay: '0.6s' }}>
+                  <input
+                    type="checkbox"
+                    id="dual-stack"
+                    checked={dualStackMode}
+                    onChange={(e) => setDualStackMode(e.target.checked)}
+                    className="rounded border-gray-300"
+                  />
+                  <label htmlFor="dual-stack" className="text-sm font-medium flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center">
+                      <Zap className="h-2 w-2 text-white" />
+                    </div>
+                    启用双栈模式 (IPv4 + IPv6)
+                  </label>
+                </div>
+
+                {/* 格式选择 */}
+                <div className="space-y-2 slide-in-left" style={{ animationDelay: '0.8s' }}>
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    {dict.formatLabel}
+                  </label>
                   <Select value={format} onValueChange={setFormat}>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/30 backdrop-blur-sm">
                       <SelectValue placeholder="Select format" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-white/30 dark:border-gray-700/30">
                       {(!ipv6Address || !isValidIpv6) && (
                         <SelectItem value="direct-ipv4">{dict.formats[0].name}</SelectItem>
                       )}
@@ -607,418 +773,455 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{dict.commandTypeLabel}</label>
-                  <Select value={commandType} onValueChange={setCommandType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select command type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {dict.commandTypes.map((type: any, index: number) => (
-                        <SelectItem key={index} value={type.id}>{type.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* 命令类型选择 */}
+                <div className="space-y-2 slide-in-right" style={{ animationDelay: '1.0s' }}>
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Terminal className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                    {dict.commandTypeLabel}
+                  </label>
+                  <Tabs value={commandType} onValueChange={setCommandType} className="w-full">
+                    <TabsList className="grid grid-cols-3 bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm border border-white/30 dark:border-gray-700/30">
+                      <TabsTrigger value="dig" className="data-[state=active]:bg-white/80 data-[state=active]:text-blue-600">dig</TabsTrigger>
+                      <TabsTrigger value="host" className="data-[state=active]:bg-white/80 data-[state=active]:text-blue-600">host</TabsTrigger>
+                      <TabsTrigger value="doh" className="data-[state=active]:bg-white/80 data-[state=active]:text-blue-600">DOH</TabsTrigger>
+                    </TabsList>
 
-                {commandType !== "doh" && (
-                  <Button 
-                    type="button" 
-                    onClick={generateDnsQuery} 
-                    disabled={((!ipv4Address || !isValidIpv4) && (!ipv6Address || !isValidIpv6))}
-                    className="w-full"
-                  >
-                    {dict.generateButton}
-                  </Button>
-                )}
-              </div>
-
-              {commandType !== "doh" && dnsQuery && (
-                <div className="rounded-md border p-4 bg-muted">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium">{dict.resultTitle}</p>
-                      <Button type="button" size="sm" variant="outline" className="h-8 gap-1" onClick={copyToClipboard}>
-                        {copied ? (
-                          <>
-                            <Check className="h-3.5 w-3.5" />
-                            <span>{dict.copiedMessage}</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="h-3.5 w-3.5" />
-                            <span>{dict.copyButton}</span>
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    <pre className="overflow-x-auto rounded bg-black p-2 text-xs text-white">
-                      <code>{dnsQuery}</code>
-                    </pre>
-                    <div>
-                      <p className="text-sm font-medium">{dict.responseTitle}</p>
-                      <p className="text-sm text-muted-foreground">{expectedResponse}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {commandType === "doh" && (
-                <div className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{dict.doh.providerLabel}</label>
-                    <Select value={dohProvider} onValueChange={setDohProvider}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select DOH provider" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {dict.doh.providers.map((provider: any, index: number) => (
-                          <SelectItem key={index} value={provider.id}>{provider.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  {dohProvider === "custom" && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">{dict.doh.customEndpointLabel}</label>
-                      <Input
-                        type="text"
-                        placeholder={dict.doh.customEndpointPlaceholder}
-                        value={customDohEndpoint}
-                        onChange={(e) => setCustomDohEndpoint(e.target.value)}
-                      />
-                    </div>
-                  )}
-                  
-                  <Button 
-                    type="button" 
-                    onClick={() => executeDohQuery()} 
-                    disabled={((!ipv4Address || !isValidIpv4) && (!ipv6Address || !isValidIpv6)) || 
-                              (dohProvider === "custom" && !customDohEndpoint)}
-                    className="w-full flex items-center justify-center gap-2"
-                  >
-                    {isLoadingDoh ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>{dict.doh.loadingMessage}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-4 w-4" />
-                        <span>{dict.doh.runButton}</span>
-                      </>
-                    )}
-                  </Button>
-                  
-                  {dohUrl && (
-                    <div className="rounded-md border p-4 bg-muted">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium">DOH URL</p>
-                          <Button type="button" size="sm" variant="outline" className="h-8 gap-1" onClick={() => copyDohUrl(dohUrl)}>
-                            {dohUrlCopied ? (
-                              <>
-                                <Check className="h-3.5 w-3.5" />
-                                <span>{dict.copiedMessage}</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="h-3.5 w-3.5" />
-                                <span>{dict.copyButton}</span>
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                        <pre className="overflow-x-auto rounded bg-black p-2 text-xs text-white">
-                          <code>{dohUrl}</code>
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {dohResult && (
-                    <div className="rounded-md border p-4 bg-muted mt-4">
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium">{dict.doh.resultTitle}</p>
-                        <pre className="overflow-x-auto rounded bg-black p-2 text-xs text-white">
-                          <code>{dohResult}</code>
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>{dict.instructions.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {dict.instructions.steps.map((step: string, index: number) => (
-                  <div key={index} className="flex gap-2">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
-                      {index + 1}
-                    </div>
-                    <p className="text-sm">{step}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col items-start">
-                <Tabs defaultValue="example1" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-7 overflow-x-auto">
-                  {dict.examples && dict.examples.items && dict.examples.items.map((example: any, index: number) => (
-                    <TabsTrigger key={index} value={`example${index + 1}`}>
-                      {index + 1}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                {dict.examples && dict.examples.items && dict.examples.items.map((example: any, index: number) => (
-                  <TabsContent key={index} value={`example${index + 1}`} className="space-y-4 pt-4">
-                    <div className="rounded-md bg-muted p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <Info className="h-5 w-5" />
-                        <p className="text-base font-medium">{example.format}</p>
-                      </div>
-                      
-                      <div className="mt-4 space-y-6">
+                    {/* DOH选项卡内容 */}
+                    <TabsContent value="doh" className="space-y-4 mt-4">
+                      <div className="card-modern p-4 bg-white/5 dark:bg-gray-800/5 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 rounded-xl">
+                        <h4 className="font-semibold mb-3 flex items-center gap-2">
+                          <div className="w-5 h-5 rounded bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
+                            <Globe className="h-3 w-3 text-white" />
+                          </div>
+                          <span className="text-gradient bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text">{dict.doh.title}</span>
+                        </h4>
+                        
                         <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium">dig</p>
-                            <Button 
-                              type="button" 
-                              size="sm" 
-                              variant="outline" 
-                              className="h-8 gap-1" 
-                              onClick={() => copyExampleCommand(example.commands.dig, index * 10 + 1)}
-                            >
-                              {exampleCopied[`${index * 10 + 1}`] ? (
-                                <>
-                                  <Check className="h-3.5 w-3.5" />
-                                  <span>{dict.copiedMessage}</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="h-3.5 w-3.5" />
-                                  <span>{dict.copyButton}</span>
-                                </>
-                              )}
-                            </Button>
+                          <div>
+                            <label className="text-sm font-medium">{dict.doh.providerLabel}</label>
+                            <Select value={dohProvider} onValueChange={setDohProvider}>
+                              <SelectTrigger className="bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/30 backdrop-blur-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl">
+                                {dict.doh.providers.map((provider: any) => (
+                                  <SelectItem key={provider.id} value={provider.id}>
+                                    {provider.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
-                          <pre className="overflow-x-auto rounded bg-black p-3 text-sm text-white">
-                            <code>{example.commands.dig}</code>
-                          </pre>
-                        </div>
-                        
-                        <div className="space-y-3 pt-2">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium">host</p>
-                            <Button 
-                              type="button" 
-                              size="sm" 
-                              variant="outline" 
-                              className="h-8 gap-1" 
-                              onClick={() => copyExampleCommand(example.commands.host, index * 10 + 2)}
-                            >
-                              {exampleCopied[`${index * 10 + 2}`] ? (
-                                <>
-                                  <Check className="h-3.5 w-3.5" />
-                                  <span>{dict.copiedMessage}</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="h-3.5 w-3.5" />
-                                  <span>{dict.copyButton}</span>
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                          <pre className="overflow-x-auto rounded bg-black p-3 text-sm text-white">
-                            <code>{example.commands.host}</code>
-                          </pre>
-                        </div>
-                        
-                        {/* DoH example */}
-                        <div className="space-y-3 pt-4 mt-4 border-t">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium">DNS over HTTPS</p>
-                            <div className="flex items-center gap-2">
-                              {/* Add endpoint selection dropdown */}
-                              <Select 
-                                defaultValue="cloudflare" 
-                                onValueChange={(value) => {
-                                  // Store the selected provider in a separate state object
-                                  const updatedState = {...exampleDohLoading};
-                                  // @ts-ignore - We're using this object to store provider selections too
-                                  updatedState[`provider-${index}`] = value;
-                                  setExampleDohLoading(updatedState);
-                                }}
-                              >
-                                <SelectTrigger className="h-8 w-[130px]">
-                                  <SelectValue placeholder={dict.doh.endpointLabel} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {dict.doh.providers.map((provider: any, providerIndex: number) => (
-                                    <SelectItem key={providerIndex} value={provider.id}>{provider.name}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              
-                              <Button 
-                                type="button" 
-                                size="sm" 
-                                variant="outline" 
-                                className="h-8 gap-1" 
-                                onClick={() => {
-                                  // Define example configurations based on index
-                                  const exampleConfigs = [
-                                    { ipv4: "1.2.3.4", ipv6: "", format: "direct-ipv4" },                 // 示例1：直接IPv4
-                                    { ipv4: "", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "ipv6-complete" }, // 示例2：IPv6完整格式
-                                    { ipv4: "", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "ipv6-omit" },     // 示例3：IPv6省略零格式
-                                    { ipv4: "", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "ipv6-z" },        // 示例4：IPv6使用'z'表示零组
-                                    { ipv4: "1.2.3.4", ipv6: "", format: "base32-ipv4" },                 // 示例5：Base32编码IPv4
-                                    { ipv4: "", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "base32-ipv6" },   // 示例6：Base32编码IPv6
-                                    { ipv4: "1.2.3.4", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "dual-stack" } // 示例7：双栈
-                                  ];
 
-                                  // Use example index to get configuration
-                                  const config = exampleConfigs[index];
-                                  
-                                  // Get the selected provider or default to cloudflare
-                                  // @ts-ignore - We're using this object to store provider selections too
-                                  const selectedProvider = exampleDohLoading[`provider-${index}`] as string || "cloudflare";
-                                  
-                                  // Execute the DoH query using the configuration and selected provider
-                                  executeDohQuery(config.ipv4, config.ipv6, config.format, selectedProvider, index);
-                                }}
-                                disabled={
-                                  exampleDohLoading[`${index}`] || 
-                                  // @ts-ignore - We're using this object to store provider selections too
-                                  (exampleDohLoading[`provider-${index}`] === "custom" && 
-                                   // @ts-ignore - We're using this object to store custom endpoints too
-                                   !exampleDohLoading[`custom-endpoint-${index}`])
-                                }
-                              >
-                                {exampleDohLoading[`${index}`] ? (
-                                  <>
-                                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
-                                    <span>{dict.doh.loadingMessage}</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Play className="h-3.5 w-3.5 mr-1" />
-                                    <span>{dict.doh.runButton}</span>
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-                          </div>
-                          {/* Show custom endpoint input when custom provider is selected */}
-                          {/* @ts-ignore - We're using this object to store provider selections too */}
-                          {exampleDohLoading[`provider-${index}`] === "custom" && (
-                            <div className="mt-2 mb-2">
+                          {dohProvider === "custom" && (
+                            <div>
+                              <label className="text-sm font-medium">{dict.doh.customEndpointLabel}</label>
                               <Input
-                                type="text"
                                 placeholder={dict.doh.customEndpointPlaceholder}
-                                className="h-8 text-sm"
-                                onChange={(e) => {
-                                  const updatedState = {...exampleDohLoading};
-                                  // @ts-ignore - We're using this object to store custom endpoints too
-                                  updatedState[`custom-endpoint-${index}`] = e.target.value;
-                                  setExampleDohLoading(updatedState);
-                                }}
+                                value={customDohEndpoint}
+                                onChange={(e) => setCustomDohEndpoint(e.target.value)}
+                                className="input-modern bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/30 backdrop-blur-sm"
                               />
                             </div>
                           )}
-                          
-                          <div className="rounded bg-black p-3 text-sm text-white">
-                            <p>
-                              {/* Dynamically show the provider name based on selection */}
-                              {(() => {
-                                // @ts-ignore - We're using this object to store provider selections too
-                                const selectedProvider = exampleDohLoading[`provider-${index}`] as string || "cloudflare";
-                                const providerName = selectedProvider === "custom" 
-                                  ? "Custom" 
-                                  : dohProviders[selectedProvider as keyof typeof dohProviders].name;
-                                
-                                const text = example.commands.doh;
-                                
-                                // Check if the text is in Chinese or English and apply appropriate replacement
-                                if (text.includes("使用")) {
-                                  // Chinese text pattern
-                                  return text.replace(
-                                    /使用(Cloudflare|Google|自定义) DOH查询/i,
-                                    `使用${providerName === "Custom" ? "自定义" : providerName} DOH查询`
-                                  );
-                                } else {
-                                  // English text pattern
-                                  return text.replace(
-                                    /Using (Cloudflare|Google|Custom) DOH to query/i, 
-                                    `Using ${providerName} DOH to query`
-                                  );
-                                }
-                              })()}
-                            </p>
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+
+                {/* 生成按钮 */}
+                <Button 
+                  onClick={generateDnsQuery} 
+                  className="btn-gradient w-full py-3 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  disabled={(!ipv4Address && !ipv6Address) || (!isValidIpv4 && !isValidIpv6) || (commandType === "doh" && isLoadingDoh)}
+                >
+                  {isLoadingDoh && commandType === "doh" ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 mr-2 border-b-2 border-white"></div>
+                      {dict.doh?.loadingMessage || "执行查询中..."}
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-4 w-4 mr-2" />
+                      {commandType === "doh" ? (dict.doh?.runButton || "执行DOH查询") : dict.generateButton}
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* 结果显示卡片 */}
+          {dnsQuery && (
+            <div className="slide-in-right" style={{ animationDelay: '0.2s' }}>
+              <Card className="card-modern bg-white/10 dark:bg-gray-800/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+                      <Check className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-gradient bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text">{dict.resultTitle}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-4 rounded-xl border border-gray-700/50 shadow-inner">
+                    <code className="text-green-400 text-sm font-mono break-all">{dnsQuery}</code>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={copyToClipboard}
+                    className="w-full bg-white/20 dark:bg-gray-800/20 border-white/30 dark:border-gray-700/30 backdrop-blur-sm hover:bg-white/30 dark:hover:bg-gray-700/30"
+                  >
+                    {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                    {copied ? dict.copiedMessage : dict.copyButton}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* 预期响应卡片 */}
+          {expectedResponse && (
+            <div className="slide-in-left" style={{ animationDelay: '0.4s' }}>
+              <Card className="card-modern bg-white/10 dark:bg-gray-800/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
+                      <Info className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-gradient bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text">{dict.responseTitle}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-4 rounded-xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
+                    <p className="text-blue-800 dark:text-blue-200 text-sm">{expectedResponse}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* DOH查询结果 */}
+          {commandType === "doh" && dohResult && (
+            <div className="slide-in-right" style={{ animationDelay: '0.6s' }}>
+              <Card className="card-modern bg-white/10 dark:bg-gray-800/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                      <Globe className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-gradient bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text">{dict.doh.resultTitle}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-4 rounded-xl border border-gray-700/50 shadow-inner max-h-80 overflow-auto">
+                    <pre className="text-green-400 text-xs font-mono whitespace-pre-wrap">{dohResult}</pre>
+                  </div>
+                  {dohUrl && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">{dict.doh.endpointLabel}</label>
+                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg border">
+                        <code className="text-xs break-all">{dohUrl}</code>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyDohUrl(dohUrl)}
+                        className="w-full bg-white/20 dark:bg-gray-800/20 border-white/30 dark:border-gray-700/30 backdrop-blur-sm"
+                      >
+                        {dohUrlCopied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                        {dohUrlCopied ? "已复制!" : "复制URL"}
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* 示例演示卡片 */}
+          {dict.examples && dict.examples.items && (
+            <div className="slide-in-left" style={{ animationDelay: '0.8s' }}>
+              <Card className="card-modern bg-white/10 dark:bg-gray-800/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center">
+                      <Zap className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-gradient bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text">{dict.examples.title || "示例演示"}</span>
+                  </CardTitle>
+                  <CardDescription className="text-muted-foreground">
+                    {dict.examples.subtitle || "查看不同格式的DNS查询示例"}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="example1" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-7 overflow-x-auto bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm border border-white/30 dark:border-gray-700/30">
+                      {dict.examples.items.map((example: any, index: number) => (
+                        <TabsTrigger 
+                          key={index} 
+                          value={`example${index + 1}`}
+                          className="data-[state=active]:bg-white/80 data-[state=active]:text-blue-600 transition-all duration-200"
+                        >
+                          {index + 1}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                    
+                    {dict.examples.items.map((example: any, index: number) => (
+                      <TabsContent key={index} value={`example${index + 1}`} className="space-y-6 pt-6">
+                        <div className="card-modern p-6 bg-white/5 dark:bg-gray-800/5 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 rounded-xl">
+                          <div className="flex items-center gap-3 mb-6">
+                            <div className="w-6 h-6 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">{index + 1}</span>
+                            </div>
+                            <p className="text-base font-medium text-gradient bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text">{example.format}</p>
                           </div>
                           
-                          {/* Show DOH URL for examples */}
-                          {exampleDohUrls[`${index}`] && (
-                            <div className="mt-4 rounded-md border p-4 bg-muted">
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <p className="text-sm font-medium">DOH URL</p>
+                          <div className="space-y-6">
+                            {/* dig 命令示例 */}
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium flex items-center gap-2">
+                                  <Terminal className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                  dig
+                                </p>
+                                <Button 
+                                  type="button" 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="h-8 gap-1 bg-white/20 dark:bg-gray-800/20 border-white/30 dark:border-gray-700/30 backdrop-blur-sm hover:bg-white/30 dark:hover:bg-gray-700/30" 
+                                  onClick={() => copyExampleCommand(example.commands.dig, index * 10 + 1)}
+                                >
+                                  {exampleCopied[`${index * 10 + 1}`] ? (
+                                    <>
+                                      <Check className="h-3.5 w-3.5" />
+                                      <span>{dict.copiedMessage}</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="h-3.5 w-3.5" />
+                                      <span>{dict.copyButton}</span>
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-4 rounded-xl border border-gray-700/50 shadow-inner">
+                                <code className="text-green-400 text-sm font-mono break-all">{example.commands.dig}</code>
+                              </div>
+                            </div>
+                            
+                            {/* host 命令示例 */}
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium flex items-center gap-2">
+                                  <Terminal className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                  host
+                                </p>
+                                <Button 
+                                  type="button" 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="h-8 gap-1 bg-white/20 dark:bg-gray-800/20 border-white/30 dark:border-gray-700/30 backdrop-blur-sm hover:bg-white/30 dark:hover:bg-gray-700/30" 
+                                  onClick={() => copyExampleCommand(example.commands.host, index * 10 + 2)}
+                                >
+                                  {exampleCopied[`${index * 10 + 2}`] ? (
+                                    <>
+                                      <Check className="h-3.5 w-3.5" />
+                                      <span>{dict.copiedMessage}</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="h-3.5 w-3.5" />
+                                      <span>{dict.copyButton}</span>
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-4 rounded-xl border border-gray-700/50 shadow-inner">
+                                <code className="text-blue-400 text-sm font-mono break-all">{example.commands.host}</code>
+                              </div>
+                            </div>
+                            
+                            {/* DoH 示例 */}
+                            <div className="space-y-3 pt-4 border-t border-white/20 dark:border-gray-700/20">
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium flex items-center gap-2">
+                                  <Globe className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                                  DNS over HTTPS
+                                </p>
+                                <div className="flex items-center gap-2">
+                                  <Select 
+                                    defaultValue="cloudflare" 
+                                    onValueChange={(value) => {
+                                      const updatedState = {...exampleDohLoading};
+                                      // @ts-ignore
+                                      updatedState[`provider-${index}`] = value;
+                                      setExampleDohLoading(updatedState);
+                                    }}
+                                  >
+                                    <SelectTrigger className="h-8 w-[130px] bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/30 backdrop-blur-sm">
+                                      <SelectValue placeholder={dict.doh.endpointLabel} />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl">
+                                      {dict.doh.providers.map((provider: any, providerIndex: number) => (
+                                        <SelectItem key={providerIndex} value={provider.id}>{provider.name}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  
                                   <Button 
                                     type="button" 
                                     size="sm" 
                                     variant="outline" 
-                                    className="h-8 gap-1" 
-                                    onClick={() => copyDohUrl(exampleDohUrls[`${index}`], true, index)}
+                                    className="h-8 gap-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-300/30 dark:border-purple-700/30 backdrop-blur-sm hover:from-purple-500/30 hover:to-pink-500/30" 
+                                    onClick={() => {
+                                      const exampleConfigs = [
+                                        { ipv4: "1.2.3.4", ipv6: "", format: "direct-ipv4" },
+                                        { ipv4: "", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "ipv6-complete" },
+                                        { ipv4: "", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "ipv6-omit" },
+                                        { ipv4: "", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "ipv6-z" },
+                                        { ipv4: "1.2.3.4", ipv6: "", format: "base32-ipv4" },
+                                        { ipv4: "", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "base32-ipv6" },
+                                        { ipv4: "1.2.3.4", ipv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", format: "dual-stack" }
+                                      ];
+                                      const config = exampleConfigs[index];
+                                      // @ts-ignore
+                                      const selectedProvider = exampleDohLoading[`provider-${index}`] as string || "cloudflare";
+                                      executeDohQuery(config.ipv4, config.ipv6, config.format, selectedProvider, index);
+                                    }}
+                                    disabled={
+                                      exampleDohLoading[`${index}`] || 
+                                      // @ts-ignore
+                                      (exampleDohLoading[`provider-${index}`] === "custom" && 
+                                       // @ts-ignore
+                                       !exampleDohLoading[`custom-endpoint-${index}`])
+                                    }
                                   >
-                                    {exampleDohUrlCopied[`${index}`] ? (
+                                    {exampleDohLoading[`${index}`] ? (
                                       <>
-                                        <Check className="h-3.5 w-3.5" />
-                                        <span>{dict.copiedMessage}</span>
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                                        <span>{dict.doh.loadingMessage}</span>
                                       </>
                                     ) : (
                                       <>
-                                        <Copy className="h-3.5 w-3.5" />
-                                        <span>{dict.copyButton}</span>
+                                        <Play className="h-3.5 w-3.5 mr-1" />
+                                        <span>{dict.doh.runButton}</span>
                                       </>
                                     )}
                                   </Button>
                                 </div>
-                                <pre className="overflow-x-auto rounded bg-black p-2 text-xs text-white">
-                                  <code>{exampleDohUrls[`${index}`]}</code>
-                                </pre>
                               </div>
+                              
+                              {/* @ts-ignore */}
+                              {exampleDohLoading[`provider-${index}`] === "custom" && (
+                                <div className="mt-2 mb-2">
+                                  <Input
+                                    type="text"
+                                    placeholder={dict.doh.customEndpointPlaceholder}
+                                    className="h-8 text-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/30 backdrop-blur-sm"
+                                    onChange={(e) => {
+                                      const updatedState = {...exampleDohLoading};
+                                      // @ts-ignore
+                                      updatedState[`custom-endpoint-${index}`] = e.target.value;
+                                      setExampleDohLoading(updatedState);
+                                    }}
+                                  />
+                                </div>
+                              )}
+                              
+                              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-4 rounded-xl border border-gray-700/50 shadow-inner">
+                                <p className="text-purple-400 text-sm">
+                                  {(() => {
+                                    // @ts-ignore
+                                    const selectedProvider = exampleDohLoading[`provider-${index}`] as string || "cloudflare";
+                                    const providerName = selectedProvider === "custom" 
+                                      ? "Custom" 
+                                      : dohProviders[selectedProvider as keyof typeof dohProviders].name;
+                                    
+                                    const text = example.commands.doh;
+                                    
+                                    if (text.includes("使用")) {
+                                      return text.replace(
+                                        /使用(Cloudflare|Google|自定义) DOH查询/i,
+                                        `使用${providerName === "Custom" ? "自定义" : providerName} DOH查询`
+                                      );
+                                    } else {
+                                      return text.replace(
+                                        /Using (Cloudflare|Google|Custom) DOH to query/i, 
+                                        `Using ${providerName} DOH to query`
+                                      );
+                                    }
+                                  })()}
+                                </p>
+                              </div>
+                              
+                              {/* DOH URL 显示 */}
+                              {exampleDohUrls[`${index}`] && (
+                                <div className="mt-4 card-modern p-4 bg-white/5 dark:bg-gray-800/5 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 rounded-xl">
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      <p className="text-sm font-medium flex items-center gap-2">
+                                        <Globe className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                                        DOH URL
+                                      </p>
+                                      <Button 
+                                        type="button" 
+                                        size="sm" 
+                                        variant="outline" 
+                                        className="h-8 gap-1 bg-white/20 dark:bg-gray-800/20 border-white/30 dark:border-gray-700/30 backdrop-blur-sm hover:bg-white/30 dark:hover:bg-gray-700/30" 
+                                        onClick={() => copyDohUrl(exampleDohUrls[`${index}`], true, index)}
+                                      >
+                                        {exampleDohUrlCopied[`${index}`] ? (
+                                          <>
+                                            <Check className="h-3.5 w-3.5" />
+                                            <span>{dict.copiedMessage}</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Copy className="h-3.5 w-3.5" />
+                                            <span>{dict.copyButton}</span>
+                                          </>
+                                        )}
+                                      </Button>
+                                    </div>
+                                    <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg border border-gray-200/50 dark:border-gray-700/50">
+                                      <code className="text-xs break-all">{exampleDohUrls[`${index}`]}</code>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* DoH 结果显示 */}
+                              {exampleDohResults[`${index}`] && (
+                                <div className="mt-4 card-modern p-4 bg-white/5 dark:bg-gray-800/5 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 rounded-xl">
+                                  <div className="space-y-2">
+                                    <p className="text-sm font-medium flex items-center gap-2">
+                                      <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                      {dict.doh.resultTitle}
+                                    </p>
+                                    <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-3 rounded-xl border border-gray-700/50 shadow-inner max-h-60 overflow-auto">
+                                      <pre className="text-green-400 text-xs font-mono whitespace-pre-wrap">{exampleDohResults[`${index}`]}</pre>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          )}
+                          </div>
                           
-                          {/* Show DoH results directly in the example */}
-                          {exampleDohResults[`${index}`] && (
-                            <div className="mt-4 rounded-md border p-4 bg-muted">
-                              <div className="space-y-2">
-                                <p className="text-sm font-medium">{dict.doh.resultTitle}</p>
-                                <pre className="overflow-x-auto rounded bg-black p-2 text-xs text-white">
-                                  <code>{exampleDohResults[`${index}`]}</code>
-                                </pre>
-                              </div>
-                            </div>
-                          )}
+                          <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
+                            <p className="text-sm text-blue-800 dark:text-blue-200">{example.response}</p>
+                          </div>
                         </div>
-                      </div>
-                      
-                      <p className="mt-6 text-sm text-muted-foreground">{example.response}</p>
-                    </div>
-                  </TabsContent>
-                ))}
-              </Tabs>
-            </CardFooter>
-          </Card>
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </section>

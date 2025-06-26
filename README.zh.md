@@ -2,7 +2,7 @@
 
 2DNS 是一个多功能的 DNS 反射服务器，允许您在域名中编码 IP 地址，并在 DNS 响应中将其反射回来。这对于各种网络应用、诊断和基于 DNS 的服务发现非常有用。
 
-**在线服务:** 2dns.dev | [GitHub Pages (英文)](https://aiaid.github.io/2dns/en/) | [GitHub Pages (中文)](https://aiaid.github.io/2dns/zh/)
+**在线服务:** 2dns.dev | [GitHub Pages (英文)](https://aiaid.github.io/2dns/en/) | [GitHub Pages (中文)](https://aiaid.github.io/2dns/zh/) | [文档](docs/README.md)
 
 [English](README.md)
 

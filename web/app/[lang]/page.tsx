@@ -1,6 +1,8 @@
 import { getDictionary, type Locale } from "./dictionaries"
 import LandingPage from "@/components/landing-page"
 import { Suspense } from "react"
+import { Metadata } from 'next'
+import Script from 'next/script'
 
 // This function is crucial for static site generation
 // It tells Next.js which routes to pre-render at build time
@@ -31,8 +33,32 @@ export default async function Home({
   const dictionary = await getDictionary(validLang)
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <LandingPage lang={validLang} dictionary={dictionary} />
-    </Suspense>
+    <>
+      <Script id="theme-color-script" strategy="afterInteractive">
+        {`
+          function updateCodeBg() {
+            const isDark = document.documentElement.classList.contains('dark');
+            document.documentElement.style.setProperty('--code-bg', isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)');
+          }
+          
+          // 初始设置
+          updateCodeBg();
+          
+          // 监听主题切换
+          const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+              if (mutation.attributeName === 'class') {
+                updateCodeBg();
+              }
+            });
+          });
+          
+          observer.observe(document.documentElement, { attributes: true });
+        `}
+      </Script>
+      <Suspense fallback={<div>Loading...</div>}>
+        <LandingPage lang={validLang} dictionary={dictionary} />
+      </Suspense>
+    </>
   )
 }
