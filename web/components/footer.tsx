@@ -47,18 +47,6 @@ export default function Footer({
             >
               <span className="syntax-keyword">git</span> <span className="syntax-string">clone</span>
             </a>
-            <a 
-              href="#" 
-              className="text-sm text-adaptive-muted hover:text-terminal-orange transition-all duration-300 hover:scale-105"
-            >
-              <span className="syntax-comment"># {dict.privacy}</span>
-            </a>
-            <a 
-              href="#" 
-              className="text-sm text-adaptive-muted hover:text-terminal-orange transition-all duration-300 hover:scale-105"
-            >
-              <span className="syntax-comment"># {dict.terms}</span>
-            </a>
           </div>
           
           {/* Terminal separator */}

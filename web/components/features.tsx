@@ -12,11 +12,11 @@ export default function Features({ dict }: { dict: any }) {
   return (
     <section id="features" className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden">
       {/* Terminal background pattern */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 left-1/4 w-72 h-72 bg-terminal-purple/20 rounded-lg blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-terminal-blue/20 rounded-lg blur-3xl"></div>
-        {/* Code pattern overlay */}
-        <div className="absolute inset-0 opacity-10" style={{
+      <div className="absolute inset-0 opacity-20 dark:opacity-30">
+        <div className="absolute top-0 left-1/4 w-72 h-72 bg-terminal-purple/10 dark:bg-terminal-purple/20 rounded-lg blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-terminal-blue/10 dark:bg-terminal-blue/20 rounded-lg blur-3xl"></div>
+        {/* Simplified pattern for light mode */}
+        <div className="absolute inset-0 opacity-5 dark:opacity-10" style={{
           backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 24px, var(--terminal-green) 24px, var(--terminal-green) 25px)`,
         }}></div>
       </div>

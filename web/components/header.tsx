@@ -60,11 +60,11 @@ export default function Header({
           </a>
         </nav>
         
-        <div className="flex items-center gap-4 slide-in-right">
+        <div className="flex items-center gap-3 slide-in-right">
           <Link href={`/${otherLang}`} passHref>
-            <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:bg-white/10 backdrop-blur-sm transition-all duration-300 hover:scale-105">
-              <Globe className="h-5 w-5" />
-              <span className="sr-only md:not-sr-only md:inline-block">{otherLangName}</span>
+            <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:bg-black/5 dark:hover:bg-white/10 transition-all duration-300">
+              <Globe className="h-4 w-4" />
+              <span className="hidden sm:inline-block text-sm">{otherLangName}</span>
             </Button>
           </Link>
           
@@ -74,7 +74,7 @@ export default function Header({
             href="https://github.com/aiaid/2dns"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-gradient inline-flex h-9 items-center justify-center rounded-full px-6 py-2 text-sm font-medium shadow-lg transition-all duration-300 hover:scale-105"
+            className="btn-gradient inline-flex h-9 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-all duration-300 hover:opacity-90"
           >
             GitHub
           </a>
