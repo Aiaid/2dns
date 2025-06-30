@@ -35,12 +35,29 @@
 
     --radius: 0.5rem;
     
-    /* 新增的现代化配色 */
-    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --gradient-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --shimmer: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    /* Developer-oriented color scheme - Light mode */
+    --gradient-primary: linear-gradient(135deg, #00d4aa 0%, #00c7be 100%);
+    --gradient-secondary: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    --gradient-accent: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    --gradient-background: linear-gradient(135deg, #f7f9fc 0%, #eef2f7 50%, #e3e8f0 100%);
+    --terminal-bg: #1e1e1e;
+    --terminal-text: #d4d4d4;
+    --terminal-green: #4ec9b0;
+    --terminal-blue: #569cd6;
+    --terminal-purple: #c586c0;
+    --terminal-orange: #ce9178;
+    --shimmer: linear-gradient(90deg, transparent, rgba(0,212,170,0.3), transparent);
+    
+    /* Developer-focused colors - Light mode */
+    --text-primary: #2d3748;
+    --text-secondary: #4a5568;
+    --text-muted: #718096;
+    --code-bg: #f7fafc;
+    --code-border: #e2e8f0;
+    --syntax-comment: #8e8e93;
+    --syntax-keyword: #ff6b6b;
+    --syntax-string: #4ec9b0;
+    --syntax-function: #569cd6;
   }
 
   .dark {
@@ -72,12 +89,29 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
     
-    /* 暗色模式的现代化配色 */
-    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --gradient-background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    --shimmer: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    /* Developer-oriented dark mode colors */
+    --gradient-primary: linear-gradient(135deg, #00d4aa 0%, #00c7be 100%);
+    --gradient-secondary: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    --gradient-accent: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    --gradient-background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #21262d 100%);
+    --terminal-bg: #0d1117;
+    --terminal-text: #c9d1d9;
+    --terminal-green: #7ee787;
+    --terminal-blue: #79c0ff;
+    --terminal-purple: #d2a8ff;
+    --terminal-orange: #ffa657;
+    --shimmer: linear-gradient(90deg, transparent, rgba(0,212,170,0.3), transparent);
+    
+    /* Developer-focused dark mode colors */
+    --text-primary: #f0f6fc;
+    --text-secondary: #c9d1d9;
+    --text-muted: #8b949e;
+    --code-bg: #161b22;
+    --code-border: #30363d;
+    --syntax-comment: #8b949e;
+    --syntax-keyword: #ff7b72;
+    --syntax-string: #a5d6ff;
+    --syntax-function: #d2a8ff;
   }
 }
 
@@ -93,19 +127,23 @@
 }
 
 @layer components {
-  /* 现代化按钮样式 */
+  /* Terminal-inspired button styles */
   .btn-gradient {
     background: var(--gradient-primary);
     color: white;
-    border: none;
+    border: 2px solid transparent;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-weight: 600;
+    letter-spacing: 0.5px;
   }
   
   .btn-gradient:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(0, 212, 170, 0.3);
+    border-color: var(--terminal-green);
   }
   
   .btn-gradient::before {
@@ -116,43 +154,100 @@
     width: 100%;
     height: 100%;
     background: var(--shimmer);
-    transition: left 0.5s;
+    transition: left 0.4s;
   }
   
   .btn-gradient:hover::before {
     left: 100%;
   }
   
-  /* 卡片样式美化 */
+  /* Terminal-style card components */
   .card-modern {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(200, 200, 200, 0.3);
-    border-radius: 20px;
+    background: var(--code-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
     transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .card-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-primary);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
   
   .card-modern:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0, 212, 170, 0.1);
+    border-color: var(--terminal-green);
+  }
+  
+  .card-modern:hover::before {
+    opacity: 1;
   }
   
   .dark .card-modern {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--terminal-bg);
+    border: 1px solid var(--code-border);
   }
   
-  /* 渐变文本 */
+  /* Code-style gradient text */
   .text-gradient {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-weight: 700;
   }
   
-  /* 发光效果 */
+  /* Developer-focused text colors */
+  .text-adaptive {
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  
+  .text-adaptive-secondary {
+    color: var(--text-secondary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  
+  .text-adaptive-muted {
+    color: var(--text-muted);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  
+  /* Terminal-style glow */
   .glow {
-    box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.4);
+  }
+  
+  /* Code block styling */
+  .code-block {
+    background: var(--terminal-bg);
+    color: var(--terminal-text);
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+    position: relative;
+  }
+  
+  .code-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--gradient-primary);
   }
   
   /* 浮动动画 */
@@ -199,30 +294,75 @@
     animation: pulse 3s infinite;
   }
   
-  /* 现代化输入框 */
+  /* Terminal-inspired input fields */
   .input-modern {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
+    background: var(--code-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--code-border);
+    border-radius: 6px;
     transition: all 0.3s ease;
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+    color: var(--text-primary);
   }
   
   .input-modern:focus {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(102, 126, 234, 0.5);
-    box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+    border-color: var(--terminal-green);
+    box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+    outline: none;
+    background: var(--terminal-bg);
   }
   
-  /* 导航栏美化 */
+  .dark .input-modern {
+    background: var(--terminal-bg);
+  }
+  
+  /* Developer-style navigation */
   .nav-modern {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(247, 249, 252, 0.95);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--code-border);
+    position: relative;
+  }
+  
+  .nav-modern::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--gradient-primary);
+    opacity: 0.6;
   }
   
   .dark .nav-modern {
-    background: rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(13, 17, 23, 0.95);
+    border-bottom: 1px solid var(--code-border);
+  }
+  
+  /* Syntax highlighting classes */
+  .syntax-keyword {
+    color: var(--syntax-keyword);
+    font-weight: 600;
+  }
+  
+  .syntax-string {
+    color: var(--syntax-string);
+  }
+  
+  .syntax-function {
+    color: var(--syntax-function);
+  }
+  
+  .syntax-comment {
+    color: var(--syntax-comment);
+    font-style: italic;
+  }
+  
+  /* Terminal prompt style */
+  .terminal-prompt::before {
+    content: '$ ';
+    color: var(--terminal-green);
+    font-weight: bold;
   }
 }
