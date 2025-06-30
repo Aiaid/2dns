@@ -413,4 +413,37 @@
   .dark .btn-gradient:hover {
     box-shadow: 0 8px 25px rgba(0, 212, 170, 0.4);
   }
+  
+  /* Icon color utilities for better visibility */
+  .icon-adaptive {
+    color: var(--text-secondary);
+  }
+  
+  .icon-adaptive-muted {
+    color: var(--text-muted);
+  }
+  
+  .icon-success {
+    color: #10b981;
+  }
+  
+  .dark .icon-success {
+    color: #34d399;
+  }
+  
+  .icon-error {
+    color: #ef4444;
+  }
+  
+  .dark .icon-error {
+    color: #f87171;
+  }
+  
+  .icon-warning {
+    color: #f59e0b;
+  }
+  
+  .dark .icon-warning {
+    color: #fbbf24;
+  }
 }

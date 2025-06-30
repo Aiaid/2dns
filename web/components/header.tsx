@@ -63,7 +63,7 @@ export default function Header({
         <div className="flex items-center gap-3 slide-in-right">
           <Link href={`/${otherLang}`} passHref>
             <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:bg-black/5 dark:hover:bg-white/10 transition-all duration-300">
-              <Globe className="h-4 w-4" />
+              <Globe className="h-4 w-4 text-slate-600 dark:text-slate-400" />
               <span className="hidden sm:inline-block text-sm">{otherLangName}</span>
             </Button>
           </Link>

@@ -689,7 +689,7 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                   />
                   {!isValidIpv4 && ipv4Address && (
                     <Alert className="bg-red-50/80 dark:bg-red-900/20 border-red-200/50 dark:border-red-800/50">
-                      <AlertCircle className="h-4 w-4" />
+                      <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
                       <AlertDescription className="text-red-600 dark:text-red-400">
                         {errorMessageIpv4}
                       </AlertDescription>
@@ -714,7 +714,7 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                   />
                   {!isValidIpv6 && ipv6Address && (
                     <Alert className="bg-red-50/80 dark:bg-red-900/20 border-red-200/50 dark:border-red-800/50">
-                      <AlertCircle className="h-4 w-4" />
+                      <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
                       <AlertDescription className="text-red-600 dark:text-red-400">
                         {errorMessageIpv6}
                       </AlertDescription>
@@ -843,7 +843,7 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                     </>
                   ) : (
                     <>
-                      <Play className="h-4 w-4 mr-2" />
+                      <Play className="h-4 w-4 mr-2 text-white" />
                       {commandType === "doh" ? (dict.doh?.runButton || "执行DOH查询") : dict.generateButton}
                     </>
                   )}
@@ -874,7 +874,7 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                     onClick={copyToClipboard}
                     className="w-full bg-white/20 dark:bg-gray-800/20 border-white/30 dark:border-gray-700/30 backdrop-blur-sm hover:bg-white/30 dark:hover:bg-gray-700/30"
                   >
-                    {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                    {copied ? <Check className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" /> : <Copy className="h-4 w-4 mr-2 text-slate-600 dark:text-slate-400" />}
                     {copied ? dict.copiedMessage : dict.copyButton}
                   </Button>
                 </CardContent>
@@ -931,7 +931,7 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                         onClick={() => copyDohUrl(dohUrl)}
                         className="w-full bg-white/20 dark:bg-gray-800/20 border-white/30 dark:border-gray-700/30 backdrop-blur-sm"
                       >
-                        {dohUrlCopied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                        {dohUrlCopied ? <Check className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" /> : <Copy className="h-4 w-4 mr-2 text-slate-600 dark:text-slate-400" />}
                         {dohUrlCopied ? "已复制!" : "复制URL"}
                       </Button>
                     </div>
@@ -997,12 +997,12 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                                 >
                                   {exampleCopied[`${index * 10 + 1}`] ? (
                                     <>
-                                      <Check className="h-3.5 w-3.5" />
+                                      <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                                       <span>{dict.copiedMessage}</span>
                                     </>
                                   ) : (
                                     <>
-                                      <Copy className="h-3.5 w-3.5" />
+                                      <Copy className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
                                       <span>{dict.copyButton}</span>
                                     </>
                                   )}
@@ -1029,12 +1029,12 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                                 >
                                   {exampleCopied[`${index * 10 + 2}`] ? (
                                     <>
-                                      <Check className="h-3.5 w-3.5" />
+                                      <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                                       <span>{dict.copiedMessage}</span>
                                     </>
                                   ) : (
                                     <>
-                                      <Copy className="h-3.5 w-3.5" />
+                                      <Copy className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
                                       <span>{dict.copyButton}</span>
                                     </>
                                   )}
@@ -1102,12 +1102,12 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                                   >
                                     {exampleDohLoading[`${index}`] ? (
                                       <>
-                                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1 text-blue-600 dark:text-blue-400" />
                                         <span>{dict.doh.loadingMessage}</span>
                                       </>
                                     ) : (
                                       <>
-                                        <Play className="h-3.5 w-3.5 mr-1" />
+                                        <Play className="h-3.5 w-3.5 mr-1 text-white" />
                                         <span>{dict.doh.runButton}</span>
                                       </>
                                     )}
@@ -1176,12 +1176,12 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                                       >
                                         {exampleDohUrlCopied[`${index}`] ? (
                                           <>
-                                            <Check className="h-3.5 w-3.5" />
+                                            <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                                             <span>{dict.copiedMessage}</span>
                                           </>
                                         ) : (
                                           <>
-                                            <Copy className="h-3.5 w-3.5" />
+                                            <Copy className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
                                             <span>{dict.copyButton}</span>
                                           </>
                                         )}
