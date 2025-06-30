@@ -1,6 +1,5 @@
 import Link from "next/link"
-import Image from "next/image"
-import { getImagePath } from "@/lib/utils"
+import DNSNetworkSVG from "./dns-network-svg"
 
 export default function Hero({ dict }: { dict: any }) {
   return (
@@ -49,16 +48,11 @@ export default function Hero({ dict }: { dict: any }) {
           </div>
           
           <div className="flex items-center justify-center slide-in-right">
-            <div className="relative code-block p-4">
-              <div className="absolute inset-0 bg-gradient-to-r from-terminal-green/30 to-terminal-blue/30 rounded-lg blur-lg"></div>
-              <Image
-                src={getImagePath("/image.png")}
-                width={600}
-                height={400}
-                alt="2DNS Global Network"
-                className="relative rounded-lg object-contain shadow-xl transition-transform duration-500 hover:scale-105 float"
-                priority
-              />
+            <div className="relative w-full max-w-[600px] h-[400px]">
+              <div className="absolute inset-0 bg-gradient-to-r from-terminal-green/20 to-terminal-blue/20 rounded-lg blur-lg"></div>
+              <div className="relative rounded-lg overflow-hidden shadow-xl transition-transform duration-500 hover:scale-105 float">
+                <DNSNetworkSVG className="w-full h-full rounded-lg" />
+              </div>
             </div>
           </div>
         </div>
