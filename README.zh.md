@@ -1,10 +1,21 @@
 # 2DNS - DNS 反射服务器
 
-2DNS 是一个多功能的 DNS 反射服务器，允许您在域名中编码 IP 地址，并在 DNS 响应中将其反射回来。这对于各种网络应用、诊断和基于 DNS 的服务发现非常有用。
+2DNS 是一个多功能的 DNS 反射服务器，允许您在域名中编码 IP 地址，并在 DNS 响应中反射这些地址。这对于各种网络应用、诊断和基于 DNS 的服务发现非常有用。
 
-**在线服务:** 2dns.dev | [GitHub Pages (英文)](https://aiaid.github.io/2dns/en/) | [GitHub Pages (中文)](https://aiaid.github.io/2dns/zh/) | [文档](docs/README.md)
+**在线服务：** 2dns.dev | [GitHub Pages (英文)](https://aiaid.github.io/2dns/en/) | [GitHub Pages (中文)](https://aiaid.github.io/2dns/zh/)
 
-[English](README.md)
+[English](README.md) | [文档](docs/README.md)
+
+## 最新更新
+
+### v1.1.0 - 界面颜色优化
+- 🎨 **修复了白天模式下文字颜色问题**：将所有白色文字替换为自适应颜色，确保在浅色背景下文字清晰可见
+- 🌈 **新增响应式文字颜色系统**：
+  - `text-adaptive`: 主要文字颜色，白天模式为深色，夜间模式为浅色
+  - `text-adaptive-secondary`: 次要文字颜色
+  - `text-adaptive-muted`: 弱化文字颜色
+- 🎭 **优化了背景渐变**：白天模式使用浅色渐变背景，提升整体视觉体验
+- ✅ **添加了测试用例**：确保颜色修复的正确性和持续性
 
 ## 功能特点
 
