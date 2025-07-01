@@ -118,6 +118,7 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
   const [dohUrlCopied, setDohUrlCopied] = useState(false)
   const [exampleDohUrls, setExampleDohUrls] = useState<{[key: string]: string}>({})
   const [exampleDohUrlCopied, setExampleDohUrlCopied] = useState<{[key: string]: boolean}>({})
+  const [selectedExample, setSelectedExample] = useState("example1")
   
   // DOH providers configuration
   const dohProviders = {
@@ -957,18 +958,30 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue="example1" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-7 overflow-x-auto bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm border border-white/30 dark:border-gray-700/30">
-                      {dict.examples.items.map((example: any, index: number) => (
-                        <TabsTrigger 
-                          key={index} 
-                          value={`example${index + 1}`}
-                          className="data-[state=active]:bg-white/80 data-[state=active]:text-blue-600 transition-all duration-200"
-                        >
-                          {index + 1}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
+                  <div className="space-y-6">
+                    {/* 示例选择器 */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                          <span className="text-white text-xs">#</span>
+                        </div>
+                        选择示例
+                      </label>
+                      <Select value={selectedExample} onValueChange={setSelectedExample}>
+                        <SelectTrigger className="bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/30 backdrop-blur-sm">
+                          <SelectValue placeholder="选择一个示例" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-white/30 dark:border-gray-700/30">
+                          {dict.examples.items.map((example: any, index: number) => (
+                            <SelectItem key={index} value={`example${index + 1}`}>
+                              示例 {index + 1}: {example.format}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <Tabs value={selectedExample} onValueChange={setSelectedExample} className="w-full">
                     
                     {dict.examples.items.map((example: any, index: number) => (
                       <TabsContent key={index} value={`example${index + 1}`} className="space-y-6 pt-6">
@@ -1217,7 +1230,8 @@ export default function InteractiveDemo({ dict }: { dict: any }) {
                         </div>
                       </TabsContent>
                     ))}
-                  </Tabs>
+                    </Tabs>
+                  </div>
                 </CardContent>
               </Card>
             </div>

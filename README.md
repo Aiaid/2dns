@@ -14,6 +14,10 @@
   - IPv6 with various notation formats
   - Base32 encoding for both IPv4 and IPv6 addresses (case-insensitive)
   - Dual-stack support (both IPv4 and IPv6 in a single domain)
+  - **NEW**: Multi-record JSON format (encode multiple DNS record types in one domain)
+- Comprehensive DNS record type support (A, AAAA, TXT, MX, SRV, CNAME, and many more)
+- CSV file support for traditional DNS records
+- Wildcard record support
 - Runs on multiple ports and network types for maximum compatibility
 - Lightweight and efficient Go implementation
 
@@ -122,6 +126,12 @@ _sip._tcp.example.com,SRV,sip.example.com,3600,10,20,5060
 - **CAA**: Certification Authority Authorization records
 - **ALIAS**: Similar to CNAME but can be used at the zone apex (root domain). Resolves at the DNS server level.
 - **ANAME**: Similar to ALIAS but specifically for A/AAAA resolution. Automatically resolves to the target domain's A or AAAA records.
+- **DNAME**: Delegation name records
+- **TLSA**: Transport Layer Security Authentication records
+- **SSHFP**: SSH Key Fingerprint records
+- **NAPTR**: Naming Authority Pointer records
+- **HINFO**: Host information records
+- **LOC**: Location records
 
 #### Wildcard Records
 
@@ -233,16 +243,88 @@ This will return `2001:0db8:85a3:0000:0000:8a2e:0370:7334` as an AAAA record.
 
 Note: Dual-stack encoding is also case-insensitive, allowing for both uppercase and lowercase letters in the Base32 encoded parts.
 
+#### 6. Multi-Record JSON Format
+
+2DNS now supports encoding multiple DNS records in a single domain name using JSON format. This allows you to specify multiple record types (A, AAAA, TXT, MX, etc.) for the same domain.
+
+##### Single-Layer Format
+
+Format: `j<base32-encoded-json>.<domain>`
+
+Example JSON: `{"A":"192.168.1.1","TXT":"verification=abc123","MX":"10 mail.example.com"}`
+
+Usage:
+```bash
+# Create JSON with multiple records
+echo '{"A":"192.168.1.1","TXT":"test","AAAA":"2001:db8::1"}' | base32 | tr -d '=' | tr '=' '8'
+
+# Use the encoded result in a DNS query
+dig @2dns.dev j<BASE32_RESULT>.2dns.dev A    # Returns 192.168.1.1
+dig @2dns.dev j<BASE32_RESULT>.2dns.dev TXT  # Returns "test"
+dig @2dns.dev j<BASE32_RESULT>.2dns.dev AAAA # Returns 2001:db8::1
+```
+
+##### Multi-Layer Format (for longer JSON)
+
+For longer JSON that exceeds DNS label limits, use multiple layers:
+
+Format: `j1<part1>.j2<part2>.j3<part3>.<domain>`
+
+Example:
+```bash
+# For longer JSON data that gets split into multiple parts
+dig @2dns.dev j1PART1.j2PART2.j3PART3.2dns.dev A
+```
+
+##### Supported Record Types in JSON
+
+The JSON format supports all the same record types as CSV records:
+
+```json
+{
+  "A": "192.168.1.1",
+  "AAAA": "2001:db8::1",
+  "TXT": "verification token or any text",
+  "MX": "10 mail.example.com",
+  "CNAME": "target.example.com",
+  "SRV": "10 20 443 target.example.com",
+  "NS": "ns1.example.com",
+  "CAA": "0 issue letsencrypt.org",
+  "TLSA": "3 1 1 abcdef1234567890...",
+  "SSHFP": "1 1 abcdef1234567890..."
+}
+```
+
+##### Format Guidelines
+
+- Use standard JSON syntax with double quotes
+- For MX records: "priority target" format
+- For SRV records: "priority weight port target" format  
+- For CAA records: "flags tag value" format
+- For TLSA records: "usage selector matchingtype certificate" format
+- For SSHFP records: "algorithm fptype fingerprint" format
+- Base32 encoding uses '8' instead of '=' for padding (DNS-safe)
+- Both single-layer and multi-layer formats are case-insensitive
+
+##### Benefits
+
+- **Flexibility**: Define multiple record types for one domain
+- **Efficiency**: Reduce the number of domain names needed
+- **Compatibility**: Works with existing DNS infrastructure
+- **Scalability**: Multi-layer support for complex record sets
+
 ## Technical Details
 
 The server attempts to start on multiple ports (8053-8058) and network types (udp, tcp, udp6, tcp6) for maximum compatibility. It will use the first available port for each network type.
 
 When processing a DNS query, the server:
 
-1. Attempts to parse the domain name as a direct IPv4 or IPv6 address
-2. If that fails, attempts to parse it as a Base32 encoded IPv4 or IPv6 address
-3. If that fails, attempts to parse it as a dual-stack address (containing both IPv4 and IPv6)
-4. Returns the appropriate DNS record (A for IPv4, AAAA for IPv6) if successful
+1. First checks if there's a matching record in the CSV file (if provided)
+2. If no CSV match, checks for multi-record JSON format (j<base32> or j1<part1>.j2<part2>...)
+3. If not JSON format, attempts to parse the domain name as a direct IPv4 or IPv6 address
+4. If that fails, attempts to parse it as a Base32 encoded IPv4 or IPv6 address
+5. If that fails, attempts to parse it as a dual-stack address (containing both IPv4 and IPv6)
+6. Returns the appropriate DNS record based on the query type and parsed data
 
 ## License
 

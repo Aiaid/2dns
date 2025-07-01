@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/base32"
 	"errors"
+	"fmt"
 	"net"
 	"os"
 	"strings"
@@ -843,6 +845,164 @@ func TestContextHandling(t *testing.T) {
 			// Expected behavior
 		case <-time.After(100 * time.Millisecond):
 			t.Error("Operation should have been cancelled by context timeout")
+		}
+	})
+}
+
+// TestMultiRecord tests the new multi-record JSON functionality
+func TestMultiRecord(t *testing.T) {
+	suite := setupTestSuite()
+	defer suite.teardown()
+
+	t.Run("parseMultiRecord - single layer", func(t *testing.T) {
+		// Create test JSON: {"A":"192.168.1.1","TXT":"test"}
+		testJSON := `{"A":"192.168.1.1","TXT":"test"}`
+		
+		// Encode to base32
+		base32Data := base32.StdEncoding.EncodeToString([]byte(testJSON))
+		// Replace padding = with 8
+		base32Data = strings.ReplaceAll(base32Data, "=", "8")
+		
+		// Test domain: j[base32].2dns.dev
+		testDomain := "j" + base32Data + ".2dns.dev"
+		
+		multiRecord, ok := parseMultiRecord(testDomain)
+		if !ok {
+			t.Errorf("parseMultiRecord failed for domain: %s", testDomain)
+			return
+		}
+		
+		if multiRecord["A"] != "192.168.1.1" {
+			t.Errorf("Expected A record to be 192.168.1.1, got %s", multiRecord["A"])
+		}
+		
+		if multiRecord["TXT"] != "test" {
+			t.Errorf("Expected TXT record to be test, got %s", multiRecord["TXT"])
+		}
+	})
+
+	t.Run("parseMultiRecord - multi layer", func(t *testing.T) {
+		// Create longer test JSON
+		testJSON := `{"A":"192.168.1.1","AAAA":"2001:db8::1","TXT":"long test record with more data","MX":"10 mail.example.com"}`
+		
+		// Encode to base32
+		base32Data := base32.StdEncoding.EncodeToString([]byte(testJSON))
+		// Replace padding = with 8
+		base32Data = strings.ReplaceAll(base32Data, "=", "8")
+		
+		// Split into parts (max 63 chars per label)
+		partSize := 60 // Leave room for j1, j2 prefix
+		var parts []string
+		for i := 0; i < len(base32Data); i += partSize {
+			end := i + partSize
+			if end > len(base32Data) {
+				end = len(base32Data)
+			}
+			parts = append(parts, base32Data[i:end])
+		}
+		
+		// Create test domain: j1[part1].j2[part2].2dns.dev
+		var domainParts []string
+		for i, part := range parts {
+			domainParts = append(domainParts, fmt.Sprintf("j%d%s", i+1, part))
+		}
+		domainParts = append(domainParts, "2dns", "dev")
+		testDomain := strings.Join(domainParts, ".")
+		
+		multiRecord, ok := parseMultiRecord(testDomain)
+		if !ok {
+			t.Errorf("parseMultiRecord failed for multi-layer domain: %s", testDomain)
+			return
+		}
+		
+		if multiRecord["A"] != "192.168.1.1" {
+			t.Errorf("Expected A record to be 192.168.1.1, got %s", multiRecord["A"])
+		}
+		
+		if multiRecord["MX"] != "10 mail.example.com" {
+			t.Errorf("Expected MX record to be '10 mail.example.com', got %s", multiRecord["MX"])
+		}
+	})
+
+	t.Run("createRRFromMultiRecord", func(t *testing.T) {
+		multiRecord := MultiRecord{
+			"A":    "192.168.1.1",
+			"TXT":  "test record",
+			"MX":   "10 mail.example.com",
+			"SRV":  "10 20 443 target.example.com",
+		}
+		
+		// Test A record
+		rr := createRRFromMultiRecord(multiRecord, "test.2dns.dev", dns.TypeA)
+		if rr == nil {
+			t.Error("Expected A record, got nil")
+		} else if a, ok := rr.(*dns.A); ok {
+			if a.A.String() != "192.168.1.1" {
+				t.Errorf("Expected A record IP 192.168.1.1, got %s", a.A.String())
+			}
+		} else {
+			t.Error("Expected *dns.A record type")
+		}
+		
+		// Test TXT record
+		rr = createRRFromMultiRecord(multiRecord, "test.2dns.dev", dns.TypeTXT)
+		if rr == nil {
+			t.Error("Expected TXT record, got nil")
+		} else if txt, ok := rr.(*dns.TXT); ok {
+			if len(txt.Txt) != 1 || txt.Txt[0] != "test record" {
+				t.Errorf("Expected TXT record 'test record', got %v", txt.Txt)
+			}
+		} else {
+			t.Error("Expected *dns.TXT record type")
+		}
+		
+		// Test MX record
+		rr = createRRFromMultiRecord(multiRecord, "test.2dns.dev", dns.TypeMX)
+		if rr == nil {
+			t.Error("Expected MX record, got nil")
+		} else if mx, ok := rr.(*dns.MX); ok {
+			if mx.Preference != 10 {
+				t.Errorf("Expected MX preference 10, got %d", mx.Preference)
+			}
+			if mx.Mx != "mail.example.com." {
+				t.Errorf("Expected MX target 'mail.example.com.', got %s", mx.Mx)
+			}
+		} else {
+			t.Error("Expected *dns.MX record type")
+		}
+	})
+
+	t.Run("base32ToJSON", func(t *testing.T) {
+		testJSON := `{"A":"192.168.1.1","TXT":"test"}`
+		
+		// Encode to base32
+		base32Data := base32.StdEncoding.EncodeToString([]byte(testJSON))
+		// Replace padding = with 8
+		base32Data = strings.ReplaceAll(base32Data, "=", "8")
+		
+		multiRecord, ok := base32ToJSON(base32Data)
+		if !ok {
+			t.Error("base32ToJSON failed")
+			return
+		}
+		
+		if multiRecord["A"] != "192.168.1.1" {
+			t.Errorf("Expected A record to be 192.168.1.1, got %s", multiRecord["A"])
+		}
+		
+		if multiRecord["TXT"] != "test" {
+			t.Errorf("Expected TXT record to be test, got %s", multiRecord["TXT"])
+		}
+	})
+
+	t.Run("New record types", func(t *testing.T) {
+		// Test new record types support
+		newTypes := []string{"DNAME", "TLSA", "SSHFP", "NAPTR", "HINFO", "LOC"}
+		
+		for _, recordType := range newTypes {
+			if !isValidRecordType(recordType) {
+				t.Errorf("Expected %s to be valid record type", recordType)
+			}
 		}
 	})
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base32"
 	"encoding/csv"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -43,20 +44,187 @@ var recordStore *RecordStore
 // isValidRecordType checks if the given record type is supported
 func isValidRecordType(recordType string) bool {
 	validTypes := map[string]bool{
-		"A":     true,
-		"AAAA":  true,
-		"CNAME": true,
-		"MX":    true,
-		"NS":    true,
-		"PTR":   true,
-		"SOA":   true,
-		"SRV":   true,
-		"TXT":   true,
-		"CAA":   true,
-		"ALIAS": true,
-		"ANAME": true,
+		"A":      true,
+		"AAAA":   true,
+		"CNAME":  true,
+		"MX":     true,
+		"NS":     true,
+		"PTR":    true,
+		"SOA":    true,
+		"SRV":    true,
+		"TXT":    true,
+		"CAA":    true,
+		"ALIAS":  true,
+		"ANAME":  true,
+		"DNAME":  true,
+		"TLSA":   true,
+		"SSHFP":  true,
+		"NAPTR":  true,
+		"HINFO":  true,
+		"LOC":    true,
 	}
 	return validTypes[recordType]
+}
+
+// MultiRecord represents multiple DNS records in JSON format
+type MultiRecord map[string]string
+
+// parseMultiRecord attempts to parse multi-record JSON format from domain labels
+// Format: j[base32_json].2dns.dev or j1[part1].j2[part2].j3[part3].2dns.dev
+func parseMultiRecord(qname string) (MultiRecord, bool) {
+	// Remove trailing dot and convert to lowercase
+	qname = strings.ToLower(strings.TrimSuffix(qname, "."))
+	
+	// Extract domain name labels
+	labels := strings.Split(qname, ".")
+	if len(labels) < 2 {
+		return nil, false
+	}
+	
+	var jsonParts []string
+	
+	// Look for single layer format: j[base32]
+	if strings.HasPrefix(labels[0], "j") && !strings.HasPrefix(labels[0], "j1") {
+		// Single layer format
+		if len(labels[0]) <= 1 {
+			return nil, false
+		}
+		jsonParts = append(jsonParts, labels[0][1:]) // Remove 'j' prefix
+	} else {
+		// Look for multi-layer format: j1[part1].j2[part2].j3[part3]
+		partMap := make(map[int]string)
+		maxPart := 0
+		
+		for _, label := range labels {
+			if strings.HasPrefix(label, "j") && len(label) > 1 {
+				// Extract part number and data
+				if len(label) >= 3 && label[1] >= '1' && label[1] <= '9' {
+					partNum := int(label[1] - '0')
+					partData := label[2:]
+					if len(partData) > 0 {
+						partMap[partNum] = partData
+						if partNum > maxPart {
+							maxPart = partNum
+						}
+					}
+				}
+			}
+		}
+		
+		// Reconstruct JSON data in order
+		if maxPart > 0 {
+			for i := 1; i <= maxPart; i++ {
+				if data, exists := partMap[i]; exists {
+					jsonParts = append(jsonParts, data)
+				} else {
+					// Missing part, cannot reconstruct
+					return nil, false
+				}
+			}
+		}
+	}
+	
+	if len(jsonParts) == 0 {
+		return nil, false
+	}
+	
+	// Combine all parts
+	combinedBase32 := strings.Join(jsonParts, "")
+	
+	// Decode base32 to JSON
+	jsonData, ok := base32ToJSON(combinedBase32)
+	if !ok {
+		return nil, false
+	}
+	
+	return jsonData, true
+}
+
+// base32ToJSON decodes a Base32 encoded string to JSON and parses it into MultiRecord
+func base32ToJSON(b32Str string) (MultiRecord, bool) {
+	// Convert to uppercase to support both upper and lowercase input
+	b32Str = strings.ToUpper(b32Str)
+	
+	// Replace trailing '8' with '=' for proper base32 padding
+	sStripped := strings.TrimRight(b32Str, "8")
+	trailingCount := len(b32Str) - len(sStripped)
+	b32Converted := sStripped + strings.Repeat("=", trailingCount)
+	
+	// Decode Base32
+	rawBytes, err := base32.StdEncoding.DecodeString(b32Converted)
+	if err != nil {
+		if config.VerboseLogging {
+			log.Printf("Base32 decoding failed: %v", err)
+		}
+		return nil, false
+	}
+	
+	// Parse JSON
+	var multiRecord MultiRecord
+	err = json.Unmarshal(rawBytes, &multiRecord)
+	if err != nil {
+		if config.VerboseLogging {
+			log.Printf("JSON parsing failed: %v", err)
+		}
+		return nil, false
+	}
+	
+	return multiRecord, true
+}
+
+// createRRFromMultiRecord creates a DNS resource record from MultiRecord data
+func createRRFromMultiRecord(multiRecord MultiRecord, qname string, qtype uint16) dns.RR {
+	// Ensure qname ends with a dot
+	if !strings.HasSuffix(qname, ".") {
+		qname = qname + "."
+	}
+	
+	// Get the record type string
+	qtypeStr := dns.TypeToString[qtype]
+	
+	// Check if we have a record for the requested type
+	value, exists := multiRecord[qtypeStr]
+	if !exists {
+		return nil
+	}
+	
+	// Create DNS record using existing logic
+	dnsRecord := DNSRecord{
+		Name:  qname,
+		Type:  qtypeStr,
+		Value: value,
+		TTL:   config.TTL,
+	}
+	
+	// For records that need special parsing (MX, SRV), extract additional fields
+	switch qtypeStr {
+	case "MX":
+		// Parse "priority target" format
+		parts := strings.SplitN(value, " ", 2)
+		if len(parts) == 2 {
+			if priority, err := strconv.ParseUint(parts[0], 10, 16); err == nil {
+				dnsRecord.Priority = uint16(priority)
+				dnsRecord.Value = parts[1]
+			}
+		}
+	case "SRV":
+		// Parse "priority weight port target" format
+		parts := strings.Fields(value)
+		if len(parts) == 4 {
+			if priority, err := strconv.ParseUint(parts[0], 10, 16); err == nil {
+				dnsRecord.Priority = uint16(priority)
+			}
+			if weight, err := strconv.ParseUint(parts[1], 10, 16); err == nil {
+				dnsRecord.Weight = uint16(weight)
+			}
+			if port, err := strconv.ParseUint(parts[2], 10, 16); err == nil {
+				dnsRecord.Port = uint16(port)
+			}
+			dnsRecord.Value = parts[3]
+		}
+	}
+	
+	return createRR(dnsRecord, qname, qtype)
 }
 
 // loadRecordsFromCSV loads DNS records from a CSV file
@@ -544,6 +712,103 @@ func createRR(record DNSRecord, qname string, qtype uint16) dns.RR {
 		if config.VerboseLogging {
 			log.Printf("ANAME resolution for %s found no matching %s records in response", record.Value, dns.TypeToString[qtype])
 		}
+
+	case "DNAME":
+		if qtype != dns.TypeDNAME {
+			return nil
+		}
+		return &dns.DNAME{Hdr: hdr, Target: dns.Fqdn(record.Value)}
+
+	case "TLSA":
+		if qtype != dns.TypeTLSA {
+			return nil
+		}
+		// TLSA record format: usage selector matchingtype certificateassociationdata
+		parts := strings.SplitN(record.Value, " ", 4)
+		if len(parts) != 4 {
+			return nil
+		}
+		usage, _ := strconv.ParseUint(parts[0], 10, 8)
+		selector, _ := strconv.ParseUint(parts[1], 10, 8)
+		matchingType, _ := strconv.ParseUint(parts[2], 10, 8)
+		return &dns.TLSA{
+			Hdr:          hdr,
+			Usage:        uint8(usage),
+			Selector:     uint8(selector),
+			MatchingType: uint8(matchingType),
+			Certificate:  parts[3],
+		}
+
+	case "SSHFP":
+		if qtype != dns.TypeSSHFP {
+			return nil
+		}
+		// SSHFP record format: algorithm fptype fingerprint
+		parts := strings.SplitN(record.Value, " ", 3)
+		if len(parts) != 3 {
+			return nil
+		}
+		algorithm, _ := strconv.ParseUint(parts[0], 10, 8)
+		fptype, _ := strconv.ParseUint(parts[1], 10, 8)
+		return &dns.SSHFP{
+			Hdr:         hdr,
+			Algorithm:   uint8(algorithm),
+			Type:        uint8(fptype),
+			FingerPrint: parts[2],
+		}
+
+	case "NAPTR":
+		if qtype != dns.TypeNAPTR {
+			return nil
+		}
+		// NAPTR record format: order preference flags service regexp replacement
+		parts := strings.Fields(record.Value)
+		if len(parts) < 6 {
+			return nil
+		}
+		order, _ := strconv.ParseUint(parts[0], 10, 16)
+		preference, _ := strconv.ParseUint(parts[1], 10, 16)
+		// Parse quoted fields
+		var flags, service, regexp, replacement string
+		// Simple parsing - in production, you'd want more robust parsing
+		if len(parts) >= 6 {
+			flags = strings.Trim(parts[2], "\"")
+			service = strings.Trim(parts[3], "\"")
+			regexp = strings.Trim(parts[4], "\"")
+			replacement = parts[5]
+		}
+		return &dns.NAPTR{
+			Hdr:         hdr,
+			Order:       uint16(order),
+			Preference:  uint16(preference),
+			Flags:       flags,
+			Service:     service,
+			Regexp:      regexp,
+			Replacement: replacement,
+		}
+
+	case "HINFO":
+		if qtype != dns.TypeHINFO {
+			return nil
+		}
+		// HINFO record format: cpu os
+		parts := strings.SplitN(record.Value, " ", 2)
+		if len(parts) != 2 {
+			return nil
+		}
+		return &dns.HINFO{
+			Hdr: hdr,
+			Cpu: parts[0],
+			Os:  parts[1],
+		}
+
+	case "LOC":
+		if qtype != dns.TypeLOC {
+			return nil
+		}
+		// LOC record parsing is complex, for now just store as string
+		// In a full implementation, you'd parse the coordinates
+		return &dns.LOC{Hdr: hdr}
 	}
 
 	return nil
@@ -907,7 +1172,20 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 			}
 		}
 
-		// 2. If no matching record, proceed with existing reflection logic
+		// 2. Check for multi-record JSON format
+		multiRecord, ok := parseMultiRecord(q.Name)
+		if ok {
+			rr := createRRFromMultiRecord(multiRecord, q.Name, q.Qtype)
+			if rr != nil {
+				msg.Answer = append(msg.Answer, rr)
+				if config.VerboseLogging {
+					log.Printf("Adding multi-record for %s (type %s)", q.Name, dns.TypeToString[q.Qtype])
+				}
+				continue
+			}
+		}
+
+		// 3. If no matching record, proceed with existing reflection logic
 		switch q.Qtype {
 		case dns.TypeA:
 			// 1. Try direct IPv4 parsing
