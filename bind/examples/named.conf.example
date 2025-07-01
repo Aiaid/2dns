@@ -1,0 +1,175 @@
+# BIND Configuration Example for 2DNS Plugin
+# 
+# This configuration demonstrates how to set up BIND with the 2DNS DLZ plugin
+# to handle IP reflection and JSON multi-record functionality.
+
+# Include standard options
+include "/etc/bind/rndc.key";
+
+# Server options
+options {
+    directory "/var/cache/bind";
+    
+    # Listen on all interfaces
+    listen-on { any; };
+    listen-on-v6 { any; };
+    
+    # Allow queries from anywhere (adjust for security)
+    allow-query { any; };
+    
+    # Disable recursion for authoritative-only setup
+    recursion no;
+    
+    # Enable query logging for debugging
+    querylog yes;
+    
+    # Forwarders (if needed for non-2DNS queries)
+    # forwarders {
+    #     8.8.8.8;
+    #     8.8.4.4;
+    # };
+    
+    # DNS64 configuration (optional, for IPv6 transition)
+    # dns64 64:ff9b::/96 {
+    #     clients { any; };
+    # };
+    
+    # Rate limiting (optional)
+    rate-limit {
+        responses-per-second 10;
+        window 5;
+    };
+};
+
+# Logging configuration
+logging {
+    channel default_file {
+        file "/var/log/bind/default.log";
+        severity info;
+        print-category yes;
+        print-severity yes;
+        print-time yes;
+    };
+    
+    channel query_file {
+        file "/var/log/bind/queries.log";
+        severity info;
+        print-category yes;
+        print-severity yes;
+        print-time yes;
+    };
+    
+    channel dlz_file {
+        file "/var/log/bind/dlz.log";
+        severity debug 3;
+        print-category yes;
+        print-severity yes;
+        print-time yes;
+    };
+    
+    category default { default_file; };
+    category queries { query_file; };
+    category dlz { dlz_file; };
+};
+
+# 2DNS DLZ Plugin Configuration
+dlz "2dns_plugin" {
+    # Load the 2DNS plugin library
+    database "dlopen /usr/lib/bind/2dns-plugin.so
+        # Plugin configuration parameters
+        ttl=300
+        log_level=2
+        enable_ip_reflection=true
+        enable_json_records=true
+        enable_dual_stack=true
+        
+        # Zone configuration
+        zone=2dns.dev
+        
+        # Optional: Custom SOA record parameters
+        soa_mname=ns1.2dns.dev
+        soa_rname=admin.2dns.dev
+        soa_serial=2025010101
+        soa_refresh=3600
+        soa_retry=1800
+        soa_expire=604800
+        soa_minimum=86400
+        
+        # Optional: Custom NS records
+        ns_records=ns1.2dns.dev,ns2.2dns.dev
+        
+        # Security settings
+        max_domain_length=253
+        max_json_size=4096
+        enable_private_ip=true
+        
+        # Performance settings
+        cache_ttl=60
+        max_concurrent_queries=1000";
+};
+
+# Static zone example (for comparison)
+zone "example.com" {
+    type master;
+    file "/etc/bind/zones/db.example.com";
+    allow-transfer { none; };
+};
+
+# Controls for rndc
+controls {
+    inet 127.0.0.1 port 953
+        allow { 127.0.0.1; } keys { "rndc-key"; };
+};
+
+# Statistics channels (optional, for monitoring)
+statistics-channels {
+    inet 127.0.0.1 port 8053 allow { 127.0.0.1; };
+};
+
+# Trust anchors for DNSSEC (if needed)
+trust-anchors {
+    # Root key
+    . initial-key 257 3 8 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3+/4RgWOq7HrxRixHlFlExOLAJr5emLvN7SWXgnLh4+B5xQlNVz8Og8kvArMtNROxVQuCaSnIDdD5LKyWbRd2n9WGe2R8PzgCmr3EgVLrjyBxWezF0jLHwVN8efS3rCj/EWgvIWgb9tarpVUDK/b58Da+sqqls3eNbuv7pr+eoZG+SrDK6nWeL3c6H5Apxz7LjVc1uTIdsIXxuOLYA4/ilBmSVIzuDWfdRUfhHdY6+cn8HFRm+2hM8AnXGXws9555KrUB5qihylGa8subX2Nn6UwNR1AkUTV74bU=";
+};
+
+# Managed keys for automatic key rollover (alternative to trust-anchors)
+managed-keys {
+    # Root KSK
+    . initial-key 257 3 8 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3+/4RgWOq7HrxRixHlFlExOLAJr5emLvN7SWXgnLh4+B5xQlNVz8Og8kvArMtNROxVQuCaSnIDdD5LKyWbRd2n9WGe2R8PzgCmr3EgVLrjyBxWezF0jLHwVN8efS3rCj/EWgvIWgb9tarpVUDK/b58Da+sqqls3eNbuv7pr+eoZG+SrDK6nWeL3c6H5Apxz7LjVc1uTIdsIXxuOLYA4/ilBmSVIzuDWfdRUfhHdY6+cn8HFRm+2hM8AnXGXws9555KrUB5qihylGa8subX2Nn6UwNR1AkUTV74bU=";
+};
+
+# Additional security settings
+server-id hostname;
+version "2DNS-BIND";
+
+# Response policy zones (optional, for security filtering)
+# response-policy {
+#     zone "rpz.example.com";
+# };
+
+# ACLs for access control
+acl "trusted_networks" {
+    127.0.0.1;
+    ::1;
+    10.0.0.0/8;
+    172.16.0.0/12;
+    192.168.0.0/16;
+};
+
+acl "dns_servers" {
+    8.8.8.8;
+    8.8.4.4;
+    1.1.1.1;
+    1.0.0.1;
+};
+
+# Zone for reverse DNS (optional)
+zone "in-addr.arpa" {
+    type hint;
+    file "/etc/bind/db.root";
+};
+
+zone "ip6.arpa" {
+    type hint;
+    file "/etc/bind/db.root";
+};

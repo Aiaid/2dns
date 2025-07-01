@@ -1,0 +1,152 @@
+# Docker Compose Configuration for 2DNS BIND Plugin Testing
+# 
+# This sets up a complete testing environment with BIND and the 2DNS plugin
+
+version: '3.8'
+
+services:
+  # BIND DNS Server with 2DNS Plugin
+  bind-2dns:
+    build:
+      context: ../
+      dockerfile: examples/Dockerfile
+    container_name: bind-2dns
+    hostname: ns1.2dns.dev
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+      - "8053:8053/tcp"  # Statistics channel
+    volumes:
+      - ./named.conf.example:/etc/bind/named.conf:ro
+      - bind-logs:/var/log/bind
+      - bind-cache:/var/cache/bind
+    environment:
+      - BIND_LOG_LEVEL=info
+      - PLUGIN_LOG_LEVEL=2
+      - PLUGIN_TTL=300
+    networks:
+      - dns-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "dig", "@127.0.0.1", "health.2dns.dev", "A"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+
+  # Test Runner Container
+  test-runner:
+    build:
+      context: ../
+      dockerfile: examples/Dockerfile.test
+    container_name: bind-2dns-tests
+    depends_on:
+      bind-2dns:
+        condition: service_healthy
+    volumes:
+      - ./test_queries.sh:/app/test_queries.sh:ro
+      - test-results:/app/results
+    environment:
+      - BIND_SERVER=bind-2dns
+      - BIND_PORT=53
+      - TEST_ITERATIONS=100
+    networks:
+      - dns-network
+    command: ["/app/test_queries.sh"]
+
+  # Monitoring with Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: bind-2dns-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - dns-network
+    profiles:
+      - monitoring
+
+  # Grafana Dashboard (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: bind-2dns-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana-dashboard.json:/etc/grafana/provisioning/dashboards/2dns-dashboard.json:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    networks:
+      - dns-network
+    profiles:
+      - monitoring
+
+  # Load Testing with drill
+  load-test:
+    image: alpine:latest
+    container_name: bind-2dns-load-test
+    depends_on:
+      bind-2dns:
+        condition: service_healthy
+    networks:
+      - dns-network
+    profiles:
+      - load-test
+    command: >
+      sh -c "
+        apk add --no-cache drill &&
+        echo 'Running load test...' &&
+        for i in \$$(seq 1 1000); do
+          drill @bind-2dns 192.168.1.\$$((i % 254 + 1)).2dns.dev A > /dev/null 2>&1 &
+          if [ \$$((i % 100)) -eq 0 ]; then
+            wait
+            echo 'Completed \$$i queries'
+          fi
+        done &&
+        wait &&
+        echo 'Load test completed'
+      "
+
+  # Security Scanner
+  security-scan:
+    image: nmap:latest
+    container_name: bind-2dns-security
+    depends_on:
+      bind-2dns:
+        condition: service_healthy
+    networks:
+      - dns-network
+    profiles:
+      - security
+    command: >
+      sh -c "
+        echo 'Running security scan...' &&
+        nmap -sU -p 53 --script dns-nsid,dns-random-txid,dns-recursion bind-2dns &&
+        echo 'Security scan completed'
+      "
+
+volumes:
+  bind-logs:
+    driver: local
+  bind-cache:
+    driver: local
+  test-results:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  dns-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
